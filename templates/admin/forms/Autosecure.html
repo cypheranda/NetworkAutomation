@@ -1,0 +1,86 @@
+{% extends 'admin/forms_header.html' %}
+
+{% block template_data %}
+      <div class="form-check">
+      <input class="form-check-input" type="checkbox" value="" id="defaultCheck" required>
+      <label class="form-check-label" for="defaultCheck">
+        Please note that this configuration is only for routers
+      </label>
+      <br><br>
+    </div>
+    <div class="form-group row">
+            <label for="inputType" class="col-sm-2 col-form-label">Type</label>
+            <div class="col-sm-10">
+                <select required="required" class="custom-select my-1 mr-sm-2" id="inputType">
+                    <option value="">Choose...</option>
+                    <option value="1">firewall       (AutoSecure Firewall)</option>
+                    <option value="2">forwarding     (Secure Forwarding Plane)</option>
+                    <option value="3">full           (Interactive full session of AutoSecure)</option>
+                    <option value="4">login          (AutoSecure Login)</option>
+                    <option value="5">management     (Secure Management Plane)</option>
+                    <option value="6">no-interact    (Non-interactive session of AutoSecure)</option>
+                    <option value="7">ntp            (AutoSecure NTP)</option>
+                    <option value="8">ssh            (AutoSecure SSH)</option>
+                    <option value="9">tcp-intercept  (AutoSecure TCP Intercept)</option>
+                    <option value="10">configuring enhanced autosecure</option>
+                  </select>
+            </div>
+    </div>
+    <div class="form-group row">
+            <label for="inputSecurityBanner" class="col-sm-2 col-form-label">Security banner</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" id="inputSecurityBanner" placeholder="Security banner" required disabled="true">
+            </div>
+    </div>
+    <div class="form-group row">
+            <label for="inputNewEnablePassword" class="col-sm-2 col-form-label">New Enable Password</label>
+            <div class="col-sm-10">
+              <input type="password" class="form-control" id="inputNewEnablePassword" placeholder="New Enable Password" required onChange="onChange()">
+            </div>
+    </div>
+    <div class="form-group row">
+            <label for="inputConfirmNewEnablePassword" class="col-sm-2 col-form-label">Confirm New Enable Password</label>
+            <div class="col-sm-10">
+              <input type="password" class="form-control" id="inputConfirmNewEnablePassword" placeholder="Confirm New Enable Password" required onChange="onChange()">
+                <span id='message'></span>
+            </div>
+    </div>
+
+              <div class="form-group row">
+            <div class="col-sm-10">
+              <button type="submit" onclick="differPassword();matchPassword()" class="btn btn-primary">Submit</button>
+            </div>
+          </div>
+
+    <script>
+
+{#    show or hide fields based on type #}
+    document.getElementById('inputType').addEventListener('change', function() {
+        if (this.value == 2) {
+            document.getElementById('inputSecurityBanner').disabled = false;
+        } else {
+            document.getElementById('inputSecurityBanner').disabled = true;
+        }
+    })
+
+
+    function matchPassword() {
+        var pw1 = document.getElementById("inputNewEnablePassword");
+        var pw2 = document.getElementById("inputConfirmNewEnablePassword");
+        if (pw1 != pw2) {
+            alert("Enable passwords did not match!");
+            return false;
+        }
+    }
+
+    function differPassword() {
+      var pw1 = document.getElementById("inputNewEnablePassword");
+      var pw2 = document.getElementById("inputPassword");
+      if(pw1 == pw2) {
+          alert("Password and new enable password should differ!");
+          return false;
+      }
+    }
+    </script>
+
+    {%  endblock %}

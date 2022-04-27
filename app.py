@@ -1,8 +1,11 @@
 #!venv/bin/python
+import html
 import os
 
 import flask_user
-from flask import Flask, url_for, redirect, render_template, request, abort, jsonify
+from flask import Flask, url_for, redirect, render_template, request, abort, jsonify, Markup, json
+from flask_admin.contrib.sqla.filters import IntGreaterFilter
+from flask_admin.model import typefmt
 from flask_sqlalchemy import SQLAlchemy
 from flask_security import Security, SQLAlchemyUserDatastore, \
     UserMixin, RoleMixin, login_required, current_user
@@ -11,13 +14,18 @@ import flask_admin
 from flask_admin.contrib import sqla
 from flask_admin import helpers as admin_helpers, AdminIndexView, Admin
 from flask_admin import BaseView, expose
+from sqlalchemy.ext.hybrid import hybrid_property
 from wtforms import PasswordField
-
+# scripts import
+from templates.myscripts import netmiko_show_version, netmiko_get_devices_array, ping, paramiko_sh_ip_int_brief
 
 # Create Flask application
 app = Flask(__name__)
 app.config.from_pyfile('config.py')
 db = SQLAlchemy(app)
+admin_username = 'admin'
+admin_password = 'cisco'
+admin_enablepass = 'parola'
 
 
 # Define models
@@ -52,13 +60,30 @@ class Device(db.Model, RoleMixin):
     __tablename__ = 'device'
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(80), unique=True)
+    type = db.Column(db.String(80), nullable=False)
     ip_address = db.Column(db.String(80), nullable=False)
     os_type = db.Column(db.String(80), nullable=False)
     network_id = db.Column(db.Integer(), db.ForeignKey('network.id'), nullable=False)
     network = db.relationship("Network")
+    details = db.Column(db.String(300))
 
     def __str__(self):
         return self.name
+
+    @hybrid_property
+    def details(self):
+        hostname, uptime, version, serial, ios = netmiko_show_version.show_version(self.ip_address, self.os_type, admin_username, admin_password)
+        return hostname, uptime, version, serial, ios
+
+    @hybrid_property
+    def ping(self):
+        ping_code = ping.do_ping(self.ip_address)
+        return ping_code
+
+    @hybrid_property
+    def up_interfaces(self):
+        interfaces, int_ipaddresses = paramiko_sh_ip_int_brief.show_ipintbrief(self.ip_address, admin_username, admin_password, admin_enablepass)
+        return interfaces, int_ipaddresses
 
 
 class User(db.Model, UserMixin):
@@ -151,14 +176,52 @@ class NetworkView(MyModelView):
         'description': 'Description',
     }
 
+
 class DeviceView(MyModelView):
-    column_editable_list = ['name']
-    column_searchable_list = ['name', 'network.name']
-    column_filters = ['name', 'network.name']
+    column_list = ('name', 'type', 'ip_address', 'os_type', 'ping', 'details', 'up_interfaces')
+    column_searchable_list = column_list
+    column_filters = ['name', 'network.name', IntGreaterFilter(Device.details, 'Details')]
+
+    can_view_details = True
+    details_modal = True
+
+    def _details_formatter(view, context, model, name):
+        data_array = []
+        x = {
+                "hostname": model.details[0],
+                "uptime": model.details[1],
+                "version": model.details[2],
+                "serial": model.details[3],
+                "ios": model.details[4]
+            }
+        data_array.append(x)
+        return json.dumps(data_array)
+
+
+    def _ping_formatter(view, context, model, name):
+        return model.ping
+
+    def _ipintbrief_formatter(view, context, model, name):
+        data_array = []
+        x = {
+                "interface": model.up_interfaces[0],
+                "ip_address": model.up_interfaces[1],
+            }
+        data_array.append(x)
+        return json.dumps(data_array)
+
+    column_formatters = {
+        'details': _details_formatter,
+        'ping': _ping_formatter,
+        'up_interfaces': _ipintbrief_formatter
+    }
+
     column_labels = {
         'name': 'Name',
         'network.name': 'Network',
     }
+    # list_columns = ['id', 'name', 'ip_address', 'details']
+    # column_sortable_list = ['id', 'details']
 
 
 class TemplateView(BaseView):
@@ -184,7 +247,12 @@ class MyView(BaseView):
 @app.route('/admin/<template_type>', methods=['POST', 'GET'])
 def find_template(template_type):
     inventories = Inventory.query.order_by(Inventory.name).all()
-    return MyView().render('admin/{0}.html'.format(template_type), template_type=template_type,inventories=inventories)
+    return MyView().render('admin/forms/{0}.html'.format(template_type), template_type=template_type, inventories=inventories)
+
+
+@app.route('/admin/<device>', methods=['POST', 'GET'])
+def device_details(device):
+    return MyView().render('admin/forms/{0}.html'.format(device), hostname=device)
 
 
 class AdminIndex(AdminIndexView):
@@ -205,7 +273,7 @@ admin = flask_admin.Admin(
 
 # Add model views
 # admin.add_view(MyModelView(Role, db.session, menu_icon_type='fa', menu_icon_value='fa-server', name="Roles"))
-# admin.add_view(UserView(User, db.session, menu_icon_type='fa', menu_icon_value='fa-users', name="Users"))
+admin.add_view(UserView(User, db.session, menu_icon_type='fa', menu_icon_value='fa-users', name="Users"))
 # admin.add_view(AutosecureModalView(name="Autosecure", endpoint='autosecure', menu_icon_type='fa', menu_icon_value='fa-connectdevelop'))
 admin.add_view(TemplateView(name="Templates", endpoint='templates', menu_icon_type='fa', menu_icon_value='fa-connectdevelop'))
 admin.add_view(NetworkView(Network, db.session, menu_icon_type='fa', menu_icon_value='fa-desktop', name="Networks"))
@@ -299,7 +367,13 @@ def build_sample_db():
         db.session.commit()
 
         # devices
-
+        device1 = Device(name='R1', type='router', ip_address='192.168.122.16', os_type='ios', network_id='1')
+        device2 = Device(name='R2', type='router', ip_address='192.168.122.17', os_type='ios', network_id='1')
+        device3 = Device(name='SW1', type='switch', ip_address='192.168.122.18', os_type='ios', network_id='1')
+        db.session.add(device1)
+        db.session.add(device2)
+        db.session.add(device3)
+        db.session.commit()
 
         # users
         test_user1 = user_datastore.create_user(
