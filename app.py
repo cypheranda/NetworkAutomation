@@ -16,6 +16,11 @@ from flask_admin import helpers as admin_helpers, AdminIndexView, Admin
 from flask_admin import BaseView, expose
 from sqlalchemy.ext.hybrid import hybrid_property
 from wtforms import PasswordField
+from flask_admin.form import SecureForm
+from flask_admin.contrib.sqla import ModelView
+from flask import Flask, render_template, request, url_for, flash, redirect
+
+# ...
 # scripts import
 from templates.myscripts import netmiko_show_version, netmiko_get_devices_array, ping, paramiko_sh_ip_int_brief
 
@@ -178,9 +183,9 @@ class NetworkView(MyModelView):
 
 
 class DeviceView(MyModelView):
-    column_list = ('name', 'type', 'ip_address', 'os_type', 'ping', 'details', 'up_interfaces')
-    column_searchable_list = column_list
-    column_filters = ['name', 'network.name', IntGreaterFilter(Device.details, 'Details')]
+    # column_list = ('name', 'type', 'ip_address', 'os_type', 'ping', 'details', 'up_interfaces')
+    # column_searchable_list = column_list
+    # column_filters = ['name', 'network.name', IntGreaterFilter(Device.details, 'Details')]
 
     can_view_details = True
     details_modal = True
@@ -210,11 +215,11 @@ class DeviceView(MyModelView):
         data_array.append(x)
         return json.dumps(data_array)
 
-    column_formatters = {
-        'details': _details_formatter,
-        'ping': _ping_formatter,
-        'up_interfaces': _ipintbrief_formatter
-    }
+    # column_formatters = {
+    #     'details': _details_formatter,
+    #     'ping': _ping_formatter,
+    #     'up_interfaces': _ipintbrief_formatter
+    # }
 
     column_labels = {
         'name': 'Name',
@@ -231,6 +236,12 @@ class TemplateView(BaseView):
         return self.render('admin/templates.html', templates=templates)
 
 
+# templates views
+class AutosecureView(ModelView):
+    form_base_class = SecureForm
+    form_create_rules = ('email', 'first_name', 'last_name')
+
+
 # Flask views
 @app.route('/')
 def index():
@@ -243,16 +254,28 @@ class MyView(BaseView):
         super(MyView, self).__init__(*args, **kwargs)
         self.admin = admin
 
+messages = [{'title': 'Message One',
+             'content': 'Message One Content'},
+            {'title': 'Message Two',
+             'content': 'Message Two Content'}
+            ]
 
 @app.route('/admin/<template_type>', methods=['POST', 'GET'])
 def find_template(template_type):
+    if request.method == 'POST':
+        title = request.form['title']
+        content = request.form['content']
+
+        if not title:
+            flash('Title is required!')
+        elif not content:
+            flash('Content is required!')
+        else:
+            messages.append({'title': title, 'content': content})
+            return redirect(url_for('index'))
+
     inventories = Inventory.query.order_by(Inventory.name).all()
     return MyView().render('admin/forms/{0}.html'.format(template_type), template_type=template_type, inventories=inventories)
-
-
-@app.route('/admin/<device>', methods=['POST', 'GET'])
-def device_details(device):
-    return MyView().render('admin/forms/{0}.html'.format(device), hostname=device)
 
 
 class AdminIndex(AdminIndexView):
