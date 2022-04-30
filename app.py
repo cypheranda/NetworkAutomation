@@ -70,25 +70,50 @@ class Device(db.Model, RoleMixin):
     os_type = db.Column(db.String(80), nullable=False)
     network_id = db.Column(db.Integer(), db.ForeignKey('network.id'), nullable=False)
     network = db.relationship("Network")
-    details = db.Column(db.String(300))
-
-    def __str__(self):
-        return self.name
-
-    @hybrid_property
-    def details(self):
-        hostname, uptime, version, serial, ios = netmiko_show_version.show_version(self.ip_address, self.os_type, admin_username, admin_password)
-        return hostname, uptime, version, serial, ios
 
     @hybrid_property
     def ping(self):
-        ping_code = ping.do_ping(self.ip_address)
-        return ping_code
+        ip_address = self.ip_address
+        return ping.do_ping(self.ip_address)
+
+    @hybrid_property
+    def details(self):
+        if self.ping != "Successful ping to host!":
+            return "Could not connect to device!"
+
+        # details
+        hostname, uptime, version, serial, ios = netmiko_show_version.show_version(self.ip_address, self.os_type,
+                                                                                   admin_username, admin_password)
+        if hostname == "error":
+            return "Could not connect to device!"
+        data_array = []
+        x = {
+            "hostname": hostname,
+            "uptime": uptime,
+            "version": version,
+            "serial": serial,
+            "ios": ios
+        }
+        data_array.append(x)
+        return json.dumps(data_array)
 
     @hybrid_property
     def up_interfaces(self):
-        interfaces, int_ipaddresses = paramiko_sh_ip_int_brief.show_ipintbrief(self.ip_address, admin_username, admin_password, admin_enablepass)
-        return interfaces, int_ipaddresses
+        # up_interfaces
+        if self.ping != "Successful ping to host!" or self.details == "Could not connect to device!":
+            return "Could not connect to device!"
+        interfaces, int_ipaddresses = paramiko_sh_ip_int_brief.show_ipintbrief(self.ip_address, admin_username,
+                                                                               admin_password, admin_enablepass)
+        data_array = []
+        x = {
+            "interface": interfaces,
+            "ip_address": int_ipaddresses,
+            }
+        return data_array.append(x)
+
+
+    def __str__(self):
+        return self.name
 
 
 class User(db.Model, UserMixin):
@@ -183,50 +208,17 @@ class NetworkView(MyModelView):
 
 
 class DeviceView(MyModelView):
-    # column_list = ('name', 'type', 'ip_address', 'os_type', 'ping', 'details', 'up_interfaces')
-    # column_searchable_list = column_list
-    # column_filters = ['name', 'network.name', IntGreaterFilter(Device.details, 'Details')]
+    column_list = ('name', 'type', 'ip_address', 'os_type', 'ping', 'details', 'up_interfaces')
+    column_searchable_list = column_list
+    column_filters = ['name', 'network.name']
 
     can_view_details = True
     details_modal = True
-
-    def _details_formatter(view, context, model, name):
-        data_array = []
-        x = {
-                "hostname": model.details[0],
-                "uptime": model.details[1],
-                "version": model.details[2],
-                "serial": model.details[3],
-                "ios": model.details[4]
-            }
-        data_array.append(x)
-        return json.dumps(data_array)
-
-
-    def _ping_formatter(view, context, model, name):
-        return model.ping
-
-    def _ipintbrief_formatter(view, context, model, name):
-        data_array = []
-        x = {
-                "interface": model.up_interfaces[0],
-                "ip_address": model.up_interfaces[1],
-            }
-        data_array.append(x)
-        return json.dumps(data_array)
-
-    # column_formatters = {
-    #     'details': _details_formatter,
-    #     'ping': _ping_formatter,
-    #     'up_interfaces': _ipintbrief_formatter
-    # }
 
     column_labels = {
         'name': 'Name',
         'network.name': 'Network',
     }
-    # list_columns = ['id', 'name', 'ip_address', 'details']
-    # column_sortable_list = ['id', 'details']
 
 
 class TemplateView(BaseView):
@@ -390,9 +382,9 @@ def build_sample_db():
         db.session.commit()
 
         # devices
-        device1 = Device(name='R1', type='router', ip_address='192.168.122.16', os_type='ios', network_id='1')
-        device2 = Device(name='R2', type='router', ip_address='192.168.122.17', os_type='ios', network_id='1')
-        device3 = Device(name='SW1', type='switch', ip_address='192.168.122.18', os_type='ios', network_id='1')
+        device1 = Device(name='R1', type='router', ip_address='192.168.122.16', os_type='cisco_ios', network_id='1')
+        device2 = Device(name='R2', type='router', ip_address='192.168.122.17', os_type='cisco_ios', network_id='1')
+        device3 = Device(name='SW1', type='switch', ip_address='192.168.122.18', os_type='cisco_ios', network_id='1')
         db.session.add(device1)
         db.session.add(device2)
         db.session.add(device3)
