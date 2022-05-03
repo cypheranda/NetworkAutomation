@@ -19,6 +19,16 @@ from wtforms import PasswordField
 from flask_admin.form import SecureForm
 from flask_admin.contrib.sqla import ModelView
 from flask import Flask, render_template, request, url_for, flash, redirect
+<<<<<<< HEAD
+
+# ...
+# scripts import
+from templates.myscripts import netmiko_show_version, netmiko_get_devices_array, ping, paramiko_sh_ip_int_brief, netmiko_check_autosecure_config, autosecure, napalm_check_connectivity
+from templates.myscripts import netmiko_get_inventory_elements
+
+from os.path import join, dirname, realpath
+=======
+>>>>>>> origin/main
 
 # ...
 # scripts import
@@ -31,6 +41,10 @@ db = SQLAlchemy(app)
 admin_username = 'admin'
 admin_password = 'cisco'
 admin_enablepass = 'parola'
+<<<<<<< HEAD
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__)) # This is your Project Root
+=======
+>>>>>>> origin/main
 
 
 # Define models
@@ -255,6 +269,120 @@ messages = [{'title': 'Message One',
 @app.route('/admin/<template_type>', methods=['POST', 'GET'])
 def find_template(template_type):
     if request.method == 'POST':
+<<<<<<< HEAD
+        if template_type == "Autosecure":
+            inputUsername = request.form['inputUsername']
+            inputPassword = request.form['inputPassword']
+            inputEnablePassword = request.form['inputEnablePassword']
+            inputInventory = request.form['inputInventory']
+            inputDevices = request.form['inputDevices']
+            inputType = request.form['inputType']
+            inputSecurityBanner = request.form['inputSecurityBanner']
+            inputNewEnableSecret = request.form['inputNewEnableSecret']
+            inputConfirmNewEnableSecret = request.form['inputConfirmNewEnableSecret']
+            inputNewEnablePassword = request.form['inputNewEnablePassword']
+            inputConfirmNewEnablePassword = request.form['inputConfirmNewEnablePassword']
+            inputLocalUsername = request.form['inputLocalUsername']
+            inputLocalPassword = request.form['inputLocalPassword']
+            inputConfirmLocalPassword = request.form['inputConfirmLocalPassword']
+            inputBlockingPeriod = request.form['inputBlockingPeriod']
+            inputLoginFailures = request.form['inputLoginFailures']
+            inputTimePeriod = request.form['inputTimePeriod']
+            inputSSHOption = request.form['inputSSHOption']
+            inputHostname = request.form['inputHostname']
+            inputDomainName = request.form['inputDomainName']
+            inputFirewallOption = request.form['inputFirewallOption']
+            inputTCPOption = request.form['inputTCPOption']
+
+            if not inputUsername:
+                flash('Username is required!')
+            elif not inputPassword:
+                flash('Password is required!')
+            elif not inputEnablePassword:
+                flash('Enable password is required!')
+            elif not inputInventory:
+                flash('Inventory is required!')
+            elif not inputDevices:
+                flash('Devices are required!')
+            elif not inputType:
+                flash('Type is required!')
+            elif not inputSecurityBanner:
+                flash('Security banner is required!')
+            elif not inputNewEnableSecret:
+                flash('New enable secret is required!')
+            elif not (6 <= len(inputNewEnableSecret) <= 25):
+                flash('Secret length must be between 6 and 25 characters!')
+            elif not inputConfirmNewEnableSecret:
+                flash('Confirm new enable secret is required!')
+            elif inputNewEnableSecret != inputConfirmNewEnableSecret:
+                flash('Enable secrets differ!')
+            elif not inputNewEnablePassword:
+                flash('New enable password is required!')
+            elif inputNewEnablePassword == inputNewEnableSecret:
+                flash("Choose a password that's different from secret!")
+            elif not inputConfirmNewEnablePassword:
+                flash('Confirm new enable password is required!')
+            elif inputNewEnablePassword != inputConfirmNewEnablePassword:
+                flash('Enable passwords differ!')
+            elif not inputLocalUsername:
+                flash('Local username is required!')
+            elif not inputLocalPassword:
+                flash('Local password is required!')
+            elif not (6 <= len(inputLocalPassword) <= 25):
+                flash('Local password length must be between 6 and 25 characters!')
+            elif not inputConfirmLocalPassword:
+                flash('Confirm local password is required!')
+            elif inputLocalPassword != inputConfirmLocalPassword:
+                flash('Local passwords differ!')
+            elif not inputBlockingPeriod:
+                flash('Blocking period is required!')
+            elif not (1 <= len(inputBlockingPeriod) <= 32767):
+                flash('Blocking period is not between 1 and 32767!')
+            elif not inputLoginFailures:
+                flash('Login failures is required!')
+            elif not (1 <= len(inputLoginFailures) <= 32767):
+                flash('Login failures is not between 1 and 32767!')
+            elif not inputTimePeriod:
+                flash('Time period is required!')
+            elif not (1 <= len(inputTimePeriod) <= 32767):
+                flash('Time period is not between 1 and 32767!')
+            elif not inputSSHOption:
+                flash('SSH option is required!')
+            elif not inputHostname:
+                flash('Hostname is required!')
+            elif not inputDomainName:
+                flash('Domain-name is required!')
+            elif not inputFirewallOption:
+                flash('Firewall option is required!')
+            elif not inputTCPOption:
+                flash('TCP option is required!')
+            else:
+                inputSecurityBanner = 'k' + inputSecurityBanner + 'k'
+                vars_array = []
+                vars_array.extend([inputType, inputSecurityBanner, inputNewEnableSecret, inputNewEnablePassword, inputLocalUsername, inputLocalPassword, inputBlockingPeriod, inputLoginFailures, inputTimePeriod, inputSSHOption, inputHostname, inputDomainName, inputFirewallOption, inputTCPOption])
+                devices_hostname, devices_ip, devices_ostype, devices_username, devices_password, devices_enable_password = netmiko_get_devices_array.get_device_data(inputInventory, inputDevices)
+                output = autosecure.do_autosecure(devices_ip, devices_ostype, inputUsername, inputPassword, inputEnablePassword, vars_array)
+                flash(output)
+                # return redirect(url_for('index'))
+
+
+    inventories = Inventory.query.order_by(Inventory.name).all()
+    myDict = {}
+    for inventory in inventories:
+        key = inventory.name
+        inventory_id = inventory.id
+
+        # select all devices categories for each inventory
+        devices = []
+        path = 'templates/myscripts/' + inventory.name
+        CONFIG_PATH = os.path.join(ROOT_DIR, path)  # requires `import os`
+
+        devices = netmiko_get_inventory_elements.get_device_data(CONFIG_PATH)
+
+        # list
+        myDict[key] = devices
+    return MyView().render('admin/forms/{0}.html'.format(template_type), template_type=template_type, inventories=inventories, elements=myDict)
+=======
         title = request.form['title']
         content = request.form['content']
 
@@ -268,6 +396,7 @@ def find_template(template_type):
 
     inventories = Inventory.query.order_by(Inventory.name).all()
     return MyView().render('admin/forms/{0}.html'.format(template_type), template_type=template_type, inventories=inventories)
+>>>>>>> origin/main
 
 
 class AdminIndex(AdminIndexView):
@@ -333,9 +462,7 @@ def build_sample_db():
 
         # inventory files
         inventory1 = Inventory(name='inventory',)
-        inventory2 = Inventory(name='devices.txt')
         db.session.add(inventory1)
-        db.session.add(inventory2)
         db.session.commit()
 
         # templates

@@ -5,6 +5,293 @@
 {% if current_user.is_authenticated %}
 
 {% block content %}
+<<<<<<< HEAD
+<section class="content-header">
+  <h1 >
+      {{ template_type }} form
+      <br><br><br>
+  </h1>
+</section>
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js"
+        integrity="sha384-nvAa0+6Qg9clwYCGGPpDQLVpLNn0fRaROjHqs13t4Ggj3Ez50XnGQqc/r8MhnRDZ"
+        crossorigin="anonymous">
+</script>
+<script src="selectFilter.min.js"></script>
+    <form method="post" style="text-indent: 40px">
+    <div class="form-group row">
+            <label for="inputUsername" class="col-sm-2 col-form-label">Username</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" name="inputUsername" placeholder="Username" value="{{ request.form['inputUsername'] }}"></input>
+            </div>
+          </div>
+        <div class="form-group row">
+            <label for="inputPassword" class="col-sm-2 col-form-label">Password</label>
+            <div class="col-sm-10">
+              <input type="password" class="form-control" name="inputPassword" placeholder="Password" value="{{ request.form['inputPassword'] }}"></input>
+            </div>
+          </div>
+            <div class="form-group row">
+            <label for="inputEnablePassword" class="col-sm-2 col-form-label">Enable password</label>
+            <div class="col-sm-10">
+              <input type="password" class="form-control" name="inputEnablePassword" placeholder="Enable password" value="{{ request.form['inputEnablePassword'] }}"></input>
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="inputInventory" data-live-search="true" class="col-sm-2 col-form-label">Inventory</label>
+            <div class="col-sm-10">
+                <select required="required" class="custom-select my-1 mr-sm-2" name="inputInventory" id="inputInventory" value="{{ request.form['inputInventory'] }}" onchange="showHiddenSelect();">
+                    <option value="">Choose...</option>
+                    {% for inventory in inventories %}
+                        <option data-ref={{ inventory }} value={{ loop.index }}>{{ inventory }}</option>
+                    {% endfor %}
+
+                  </select>
+            </div>
+          </div>
+        <div class="form-group row">
+            <label for="inputDevices" data-live-search="true" class="col-sm-2 col-form-label">Devices</label>
+            <div class="col-sm-10">
+                <select required="required" class="custom-select my-1 mr-sm-2" name="inputDevices" id="inputDevices" value="{{ request.form['inputDevices'] }}" style="display:none">
+                    <option value="">Choose...</option>
+                    {% for key in elements.keys() %}
+                        {% for element in elements[key] %}
+                        <option data-belong={{ key }} value={{ loop.index }}>{{ element }}</option>
+                    {% endfor %}
+                {% endfor %}
+                  </select>
+            </div>
+          </div>
+        <div class="form-group row">
+            <label for="inputType" class="col-sm-2 col-form-label">Type</label>
+            <div class="col-sm-10">
+                <select required="required" class="custom-select my-1 mr-sm-2" name="inputType" id="inputType">
+                    <option value="">Choose...</option>
+                    <option value="1">firewall       (AutoSecure Firewall)</option>
+                    <option value="2">forwarding full    (Secure Forwarding Plane - Interactive full session of AutoSecure)</option>
+                    <option value="3">forwarding no-interact   (Secure Forwarding Plane - Non-interactive session of AutoSecure)</option>
+                    <option value="4">forwarding tcp-intercept   (Secure Forwarding Plane - AutoSecure TCP Intercept)</option>
+                    <option value="5">forwarding firewall    (Secure Forwarding Plane - AutoSecure Firewall)</option>
+                    <option value="6">full           (Interactive full session of AutoSecure)</option>
+                    <option value="7">login          (AutoSecure Login)</option>
+                    <option value="8">management full    (Secure Management Plane - Interactive full session of AutoSecure)</option>
+                    <option value="9">management no-interact    (Secure Management Plane - Non-interactive session of AutoSecure)</option>
+                    <option value="10">management ssh    (Secure Management Plane - AutoSecure SSH)</option>
+                    <option value="11">management ntp    (Secure Management Plane - AutoSecure NTP)</option>
+                    <option value="12">management login    (Secure Management Plane - AutoSecure Login)</option>
+                    <option value="13">no-interact    (Non-interactive session of AutoSecure)</option>
+                    <option value="14">ntp            (AutoSecure NTP)</option>
+                    <option value="15">ssh            (AutoSecure SSH)</option>
+                    <option value="16">tcp-intercept  (AutoSecure TCP Intercept)</option>
+                  </select>
+            </div>
+    </div>
+        <div class="form-group row">
+            <label for="inputSecurityBanner" class="col-sm-2 col-form-label">Security banner</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" name="inputSecurityBanner" id="inputSecurityBanner" placeholder="Security banner" value="{{ request.form['inputSecurityBanner'] }}" readonly="true"></input>
+            </div>
+    </div>
+        <div class="form-group row">
+            <label for="inputNewEnableSecret" class="col-sm-2 col-form-label">New Enable Secret</label>
+            <div class="col-sm-10">
+              <input type="password" class="form-control" name="inputNewEnableSecret" id="inputNewEnableSecret" placeholder="New Enable Secret" value="{{ request.form['inputNewEnableSecret'] }}" readonly="true"></input>
+            </div>
+    </div>
+    <div class="form-group row">
+            <label for="inputConfirmNewEnableSecret" class="col-sm-2 col-form-label">Confirm Secret</label>
+            <div class="col-sm-10">
+              <input type="password" class="form-control" name="inputConfirmNewEnableSecret" id="inputConfirmNewEnableSecret" placeholder="Confirm New Enable Secret" value="{{ request.form['inputConfirmNewEnableSecret'] }}" readonly="true">
+                <span id='message'></span>
+            </div>
+    </div>
+    <div class="form-group row">
+            <label for="inputNewEnablePassword" class="col-sm-2 col-form-label">New Enable Password</label>
+            <div class="col-sm-10">
+              <input type="password" class="form-control" name="inputNewEnablePassword" id="inputNewEnablePassword" placeholder="New Enable Password" value="{{ request.form['inputNewEnablePassword'] }}" readonly="true">
+            </div>
+    </div>
+    <div class="form-group row">
+            <label for="inputConfirmNewEnablePassword" class="col-sm-2 col-form-label">Confirm Password</label>
+            <div class="col-sm-10">
+              <input type="password" class="form-control" name="inputConfirmNewEnablePassword" id="inputConfirmNewEnablePassword" placeholder="Confirm New Enable Password" value="{{ request.form['inputConfirmNewEnablePassword'] }}" readonly="true">
+                <span id='message'></span>
+            </div>
+    </div>
+    <div class="form-group row">
+            <label for="inputLocalUsername" class="col-sm-2 col-form-label">Local username</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" name="inputLocalUsername" id="inputLocalUsername" placeholder="Configuration of local user database username" value="{{ request.form['inputLocalUsername'] }}" readonly="true"></input>
+            </div>
+          </div>
+        <div class="form-group row">
+            <label for="inputLocalPassword" class="col-sm-2 col-form-label">Local password</label>
+            <div class="col-sm-10">
+              <input type="password" class="form-control" name="inputLocalPassword" id="inputLocalPassword" placeholder="Configuration of local user database password" value="{{ request.form['inputLocalPassword'] }}" readonly="true"></input>
+            </div>
+          </div>
+        <div class="form-group row">
+            <label for="inputConfirmLocalPassword" class="col-sm-2 col-form-label">Confirm password</label>
+            <div class="col-sm-10">
+              <input type="password" class="form-control" name="inputConfirmLocalPassword" id="inputConfirmLocalPassword" placeholder="Confirm password" value="{{ request.form['inputConfirmLocalPassword'] }}" readonly="true"></input>
+            </div>
+          </div>
+        <div class="form-group row">
+            <label for="inputBlockingPeriod" class="col-sm-2 col-form-label">Blocking period</label>
+            <div class="col-sm-10">
+              <input type="number" class="form-control" name="inputBlockingPeriod" id="inputBlockingPeriod" placeholder="Blocking Period when Login Attack detected - A decimal number between 1 and 32767" value="{{ request.form['inputBlockingPeriod'] }}" readonly="true"></input>
+            </div>
+          </div>
+        <div class="form-group row">
+            <label for="inputLoginFailures" class="col-sm-2 col-form-label">Login failures</label>
+            <div class="col-sm-10">
+              <input type="number" class="form-control" name="inputLoginFailures" id="inputLoginFailures" placeholder="Maximum Login failures with the device - A decimal number between 1 and 32767" value="{{ request.form['inputLoginFailures'] }}" readonly="true"></input>
+            </div>
+          </div>
+        <div class="form-group row">
+            <label for="inputTimePeriod" class="col-sm-2 col-form-label">Time period</label>
+            <div class="col-sm-10">
+              <input type="number" class="form-control" name="inputTimePeriod" id="inputTimePeriod" placeholder="Maximum time period for crossing the failed login attempts - A decimal number between 1 and 32767" value="{{ request.form['inputTimePeriod'] }}" readonly="true"></input>
+            </div>
+          </div>
+        <div class="form-group row">
+            <label for="inputSSHOption" class="col-sm-2 col-form-label">Configure SSH server?</label>
+            <div class="col-sm-10">
+              <input type="radio" name="inputSSHOption" id="inputSSHOption" value="Yes"> Yes </input>
+                <input type="radio" name="inputSSHOption" id="inputSSHOption" value="No"checked> No </input>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputHostname" class="col-sm-2 col-form-label">Hostname</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" name="inputHostname" id="inputHostname" placeholder="Enter the hostname" value="{{ request.form['inputHostname'] }}" readonly="true"></input>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputDomainName" class="col-sm-2 col-form-label">Domain-name</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" name="inputDomainName" id="inputDomainName" placeholder="Enter the domain-name" value="{{ request.form['inputDomainName'] }}" readonly="true"></input>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputFirewallOption" class="col-sm-2 col-form-label">Configure CBAC Firewall feature?</label>
+            <div class="col-sm-10">
+              <input type="radio" name="inputFirewallOption" id="inputFirewallOption" value="Yes"> Yes </input>
+                <input type="radio" name="inputFirewallOption" id="inputFirewallOption" value="No" checked> No </input>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputTCPOption" class="col-sm-2 col-form-label">Enable tcp intercept feature?</label>
+            <div class="col-sm-10">
+              <input type="radio" name="inputTCPOption" id="inputTCPOption" value="Yes"> Yes </input>
+                <input type="radio" name="inputTCPOption" id="inputTCPOption" value="No" checked> No </input>
+            </div>
+          </div>
+              <div class="form-check">
+      <input class="form-check-input" type="checkbox" value="" name="defaultCheck" id="defaultCheck" required>
+      <label class="form-check-label" for="defaultCheck">
+        Please note that this configuration is only for routers
+      </label>
+      <br><br>
+    </div>
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" value="" name="defaultCheck" id="defaultCheck" required>
+      <label class="form-check-label" for="defaultCheck">
+        Please note that this configuration will be automatically saved to device startup-configuration
+      </label>
+      <br><br>
+    </div>
+                      <div class="form-group row">
+            <div class="col-sm-10">
+              <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+          </div>
+    </form>
+{% endblock %}
+  {% endif %}
+    <script>
+    function showHiddenSelect() {
+        {#var Inventoryvalue = document.getElementById('inputInventory').value;#}
+        document.getElementById('inputDevices').style.display='block'; }
+
+        document.getElementById('inputType').addEventListener('change', function() {
+            if (this.value == 2) {
+                document.getElementById('inputSecurityBanner').readOnly = false;
+        }
+            })
+        document.getElementById('inputType').addEventListener('change', function() {
+            if (this.value == 8 || this.value == 12 || this.value == 6 || this.value == 7) {
+                if (this.value == 12 || this.value == 7){
+                    document.getElementById('inputSecurityBanner').readOnly = true;
+                    document.getElementById('inputSecurityBanner').value = "not set";
+                }
+                else{
+                    document.getElementById('inputSecurityBanner').readOnly = false;
+                }
+                document.getElementById('inputSecurityBanner').readOnly = false;
+                document.getElementById('inputNewEnableSecret').readOnly = false;
+                document.getElementById('inputConfirmNewEnableSecret').readOnly = false;
+                document.getElementById('inputNewEnablePassword').readOnly = false;
+                document.getElementById('inputConfirmNewEnablePassword').readOnly = false;
+                document.getElementById('inputLocalUsername').readOnly = false;
+                document.getElementById('inputLocalPassword').readOnly = false;
+                document.getElementById('inputConfirmLocalPassword').readOnly = false;
+                document.getElementById('inputBlockingPeriod').readOnly = false;
+                document.getElementById('inputLoginFailures').readOnly = false;
+                document.getElementById('inputTimePeriod').readOnly = false;
+                if (document.getElementById('inputSSHOption').value == 'Yes' && (this.value == 8 || this.value == 6)) {
+                    document.getElementById('inputHostname').readOnly = false;
+                    document.getElementById('inputDomainName').readOnly = false;
+                }
+                else {
+                    document.getElementById('inputHostname').readOnly = true;
+                    document.getElementById('inputHostname').value = "already set";
+                    document.getElementById('inputDomainName').readOnly = true;
+                    document.getElementById('inputHostname').value = "already set";
+                }
+
+        }
+            if((this.value == 9) || (this.value == 10) || (this.value == 11) || (this.value == 2) || (this.value == 3) || (this.value == 4) || (this.value == 1) || (this.value == 5) || (this.value == 13) || (this.value == 14) || (this.value == 15) || (this.value == 16)) {
+                document.getElementById('inputSecurityBanner').readOnly = true;
+                document.getElementById('inputSecurityBanner').value = "not set";
+                document.getElementById('inputNewEnableSecret').readOnly = true;
+                document.getElementById('inputNewEnableSecret').value = "not set";
+                document.getElementById('inputConfirmNewEnableSecret').readOnly = true;
+                document.getElementById('inputConfirmNewEnableSecret').value = "not set";
+                document.getElementById('inputNewEnablePassword').readOnly = true;
+                document.getElementById('inputNewEnablePassword').value = "not set 2";
+                document.getElementById('inputConfirmNewEnablePassword').readOnly = true;
+                document.getElementById('inputConfirmNewEnablePassword').value = "not set 2";
+                document.getElementById('inputLocalUsername').readOnly = true;
+                document.getElementById('inputLocalUsername').value = "not set";
+                document.getElementById('inputLocalPassword').readOnly = true;
+                document.getElementById('inputLocalPassword').value = "not set 3";
+                document.getElementById('inputConfirmLocalPassword').readOnly = true;
+                document.getElementById('inputConfirmLocalPassword').value = "not set 3";
+                document.getElementById('inputBlockingPeriod').readOnly = true;
+                document.getElementById('inputBlockingPeriod').value = 30;
+                document.getElementById('inputLoginFailures').readOnly = true;
+                document.getElementById('inputLoginFailures').value = 30;
+                document.getElementById('inputTimePeriod').readOnly = true;
+                document.getElementById('inputTimePeriod').value = 30;
+                document.getElementById('inputHostname').readOnly = true;
+                document.getElementById('inputHostname').value = "not set";
+                if (this.value == 10 || this.value == 15) {
+                    document.getElementById('inputDomainName').readOnly = false;
+                }
+                else{
+                    document.getElementById('inputDomainName').readOnly = true;
+                    document.getElementById('inputDomainName').value = "not set";
+                }
+            }
+    })
+
+
+   </script>
+    <script src="http://code.jquery.com/jquery.min.js"></script>
+    <script src="selectFilter.min.js"></script>
+
+  {% endblock body %}
+=======
     <h1>{% block title %} Add a New Message {% endblock %}</h1>
     <form method="post">
         <label for="title">Title</label>
@@ -114,3 +401,4 @@
 {#    </script>#}
 {##}
 {#    {%  endblock %}#}
+>>>>>>> origin/main
