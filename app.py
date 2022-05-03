@@ -19,7 +19,6 @@ from wtforms import PasswordField
 from flask_admin.form import SecureForm
 from flask_admin.contrib.sqla import ModelView
 from flask import Flask, render_template, request, url_for, flash, redirect
-<<<<<<< HEAD
 
 # ...
 # scripts import
@@ -27,8 +26,6 @@ from templates.myscripts import netmiko_show_version, netmiko_get_devices_array,
 from templates.myscripts import netmiko_get_inventory_elements
 
 from os.path import join, dirname, realpath
-=======
->>>>>>> origin/main
 
 # ...
 # scripts import
@@ -41,10 +38,7 @@ db = SQLAlchemy(app)
 admin_username = 'admin'
 admin_password = 'cisco'
 admin_enablepass = 'parola'
-<<<<<<< HEAD
-ROOT_DIR = os.path.dirname(os.path.abspath(__file__)) # This is your Project Root
-=======
->>>>>>> origin/main
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 # Define models
@@ -269,7 +263,6 @@ messages = [{'title': 'Message One',
 @app.route('/admin/<template_type>', methods=['POST', 'GET'])
 def find_template(template_type):
     if request.method == 'POST':
-<<<<<<< HEAD
         if template_type == "Autosecure":
             inputUsername = request.form['inputUsername']
             inputPassword = request.form['inputPassword']
@@ -357,10 +350,12 @@ def find_template(template_type):
             elif not inputTCPOption:
                 flash('TCP option is required!')
             else:
+                path = 'templates/myscripts/' + inputInventory
+                CONFIG_PATH = os.path.join(ROOT_DIR, path)  # requires `import os`
                 inputSecurityBanner = 'k' + inputSecurityBanner + 'k'
                 vars_array = []
                 vars_array.extend([inputType, inputSecurityBanner, inputNewEnableSecret, inputNewEnablePassword, inputLocalUsername, inputLocalPassword, inputBlockingPeriod, inputLoginFailures, inputTimePeriod, inputSSHOption, inputHostname, inputDomainName, inputFirewallOption, inputTCPOption])
-                devices_hostname, devices_ip, devices_ostype, devices_username, devices_password, devices_enable_password = netmiko_get_devices_array.get_device_data(inputInventory, inputDevices)
+                devices_hostname, devices_ip, devices_ostype, devices_username, devices_password, devices_enable_password = netmiko_get_devices_array.get_device_data(CONFIG_PATH, inputDevices)
                 output = autosecure.do_autosecure(devices_ip, devices_ostype, inputUsername, inputPassword, inputEnablePassword, vars_array)
                 flash(output)
                 # return redirect(url_for('index'))
@@ -382,21 +377,6 @@ def find_template(template_type):
         # list
         myDict[key] = devices
     return MyView().render('admin/forms/{0}.html'.format(template_type), template_type=template_type, inventories=inventories, elements=myDict)
-=======
-        title = request.form['title']
-        content = request.form['content']
-
-        if not title:
-            flash('Title is required!')
-        elif not content:
-            flash('Content is required!')
-        else:
-            messages.append({'title': title, 'content': content})
-            return redirect(url_for('index'))
-
-    inventories = Inventory.query.order_by(Inventory.name).all()
-    return MyView().render('admin/forms/{0}.html'.format(template_type), template_type=template_type, inventories=inventories)
->>>>>>> origin/main
 
 
 class AdminIndex(AdminIndexView):

@@ -1,6 +1,8 @@
 import threading
 import os
 import tempfile
+import sys
+import io
 
 import requests
 from netmiko import ConnectHandler
@@ -8,6 +10,11 @@ from datetime import datetime
 import uuid
 
 from templates.myscripts import netmiko_check_autosecure_config, napalm_check_connectivity
+
+old_stdout = sys.stdout
+new_stdout = io.StringIO()
+sys.stdout = new_stdout
+output = ""
 
 # Interactive full session of AutoSecure
 def autosecure_full(type, device, tmp_file, vars_array):
@@ -295,7 +302,9 @@ def send_commands(connection, tmp_file):
     f = open(tmp_file, "r")
     for line in f:
         result = connection.send_command_timing(line, 1, 150, True, True, True, False, None, False, None, False, False)
-        return result
+        print(result)
+        output = new_stdout.getvalue()
+        sys.stdout = old_stdout
 
     f.close()
 
@@ -311,7 +320,7 @@ def autosecure(device, vars_array):
     try:
         if check_autosecure_type(device, connection, tmp_file, vars_array) != 0:
             print('Sending commands from file...')
-            return send_commands(connection, tmp_file)
+            send_commands(connection, tmp_file)
 
     finally:
         print('Done!')
@@ -344,5 +353,7 @@ def do_autosecure(devices, os_type, username, password, enable, vars_array):
 
     for th in threads:
         th.join()
+
+    return output
 
 
