@@ -1,0 +1,51 @@
+---
+- name: Configuring Cisco IOS Users
+  gather_facts: no
+  hosts: R1
+  connection: network_cli
+
+  tasks:
+    - name: Create a new user with a password/secret
+      become: yes
+      become_method: enable
+      become_user: admin
+      ios_user:
+        name: "{{ new_user }}"
+        password_type: "{{ password_type }}"
+        configured_password: "{{ new_password }}"
+      tags: create_new_user_password
+    - name: Create a new user with a public key
+      ios_user:
+        name: "{{ new_user }}"
+        nopassword: true
+        sshkey: "{{ lookup('file', '/root/.ssh/{{ new_key }}') }}"
+        state: present
+      tags: create_new_user_key
+    - name: Remove all users except admin
+      ios_user:
+        purge: yes
+      tags: remove_all_users
+    - name: Remove these listed users
+      become: yes
+      become_method: enable
+      become_user: admin
+      ios_user:
+        name: "{{ to_remove_user }}"
+        state: absent
+      tags: remove_users
+    - name: Set user privilege level
+      ios_user:
+        name: "{{ user }}"
+        privilege: "{{ privilege }}"
+        state: present
+      tags: set_user_privilege
+    - name: Set user new password
+      ios_user:
+        name: "{{ user }}"
+        configured_password: "{{ new_password }}"
+        password_type: "{{ password_type }}"
+        state: present
+...
+
+# Command to run:
+# ansible-playbook -i inventory ios_users.yaml --tags "remove_users" --extra-vars "to_remove_user='user3'" -vvv

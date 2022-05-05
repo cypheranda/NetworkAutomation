@@ -1,0 +1,16 @@
+---
+- name: Configuring Cisco IOS Hostnames
+  hosts: switches
+  gather_facts: no
+  connection: network_cli
+
+  tasks:
+    - name: Configure hostname
+      ios_config:
+         lines: hostname {{ inventory_hostname }}
+    - name: Printing at the console
+      debug: var=output
+...
+# Command to run:
+# ansible-playbook -i inventory ios_hostname_config.yaml
+

@@ -1,6 +1,9 @@
 #!venv/bin/python
 import html
 import os
+import ipaddress
+import re
+
 
 import flask_user
 from flask import Flask, url_for, redirect, render_template, request, abort, jsonify, Markup, json
@@ -23,7 +26,8 @@ from flask import Flask, render_template, request, url_for, flash, redirect
 # ...
 # scripts import
 from templates.myscripts import netmiko_show_version, netmiko_get_devices_array, ping, paramiko_sh_ip_int_brief, netmiko_check_autosecure_config, autosecure, napalm_check_connectivity
-from templates.myscripts import netmiko_get_inventory_elements
+from templates.myscripts import netmiko_get_inventory_elements, napalm_retrieve_info, napalm_ip_source_guard
+from templates.myscripts import netmiko_show, netmiko_run_commands_from_file, secure_boot, dai
 
 from os.path import join, dirname, realpath
 
@@ -82,16 +86,15 @@ class Device(db.Model, RoleMixin):
     @hybrid_property
     def ping(self):
         ip_address = self.ip_address
-        return ping.do_ping(self.ip_address)
+        return ping.do_ping(ip_address)
 
     @hybrid_property
     def details(self):
-        if self.ping != "Successful ping to host!":
-            return "Could not connect to device!"
-
         # details
         hostname, uptime, version, serial, ios = netmiko_show_version.show_version(self.ip_address, self.os_type,
                                                                                    admin_username, admin_password)
+        print(hostname)
+        print(uptime)
         if hostname == "error":
             return "Could not connect to device!"
         data_array = []
@@ -100,7 +103,6 @@ class Device(db.Model, RoleMixin):
             "uptime": uptime,
             "version": version,
             "serial": serial,
-            "ios": ios
         }
         data_array.append(x)
         return json.dumps(data_array)
@@ -125,6 +127,7 @@ class Device(db.Model, RoleMixin):
 
 
 class User(db.Model, UserMixin):
+    __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
     first_name = db.Column(db.String(255), nullable=False)
     last_name = db.Column(db.String(255))
@@ -236,12 +239,6 @@ class TemplateView(BaseView):
         return self.render('admin/templates.html', templates=templates)
 
 
-# templates views
-class AutosecureView(ModelView):
-    form_base_class = SecureForm
-    form_create_rules = ('email', 'first_name', 'last_name')
-
-
 # Flask views
 @app.route('/')
 def index():
@@ -254,14 +251,42 @@ class MyView(BaseView):
         super(MyView, self).__init__(*args, **kwargs)
         self.admin = admin
 
-messages = [{'title': 'Message One',
-             'content': 'Message One Content'},
-            {'title': 'Message Two',
-             'content': 'Message Two Content'}
-            ]
+
+def validate_ip_address(address):
+    try:
+        ip = ipaddress.ip_address(address)
+        return True
+    except ValueError:
+        return False
+
+def validate_mac_address(address):
+    if re.match("[0-9a-f]{2}([-:]?)[0-9a-f]{2}(\\1[0-9a-f]{2}){4}$", address.lower()):
+        return True
+    else:
+        return False
+
+def split_string(text):
+    words = text.split(",")
+    return words
 
 @app.route('/admin/<template_type>', methods=['POST', 'GET'])
 def find_template(template_type):
+    inventories = Inventory.query.order_by(Inventory.name).all()
+    myDict = {}
+    for inventory in inventories:
+        key = inventory.name
+        inventory_id = inventory.id
+
+        # select all devices categories for each inventory
+        devices = []
+        path = 'templates/myscripts/' + inventory.name
+        CONFIG_PATH = os.path.join(ROOT_DIR, path)  # requires `import os`
+
+        devices = netmiko_get_inventory_elements.get_device_data(CONFIG_PATH)
+
+        # list
+        myDict[key] = devices
+
     if request.method == 'POST':
         if template_type == "Autosecure":
             inputUsername = request.form['inputUsername']
@@ -293,7 +318,7 @@ def find_template(template_type):
                 flash('Password is required!')
             elif not inputEnablePassword:
                 flash('Enable password is required!')
-            elif not inputInventory:
+            if not inputInventory:
                 flash('Inventory is required!')
             elif not inputDevices:
                 flash('Devices are required!')
@@ -356,27 +381,171 @@ def find_template(template_type):
                 vars_array = []
                 vars_array.extend([inputType, inputSecurityBanner, inputNewEnableSecret, inputNewEnablePassword, inputLocalUsername, inputLocalPassword, inputBlockingPeriod, inputLoginFailures, inputTimePeriod, inputSSHOption, inputHostname, inputDomainName, inputFirewallOption, inputTCPOption])
                 devices_hostname, devices_ip, devices_ostype, devices_username, devices_password, devices_enable_password = netmiko_get_devices_array.get_device_data(CONFIG_PATH, inputDevices)
-                output = autosecure.do_autosecure(devices_ip, devices_ostype, inputUsername, inputPassword, inputEnablePassword, vars_array)
-                flash(output)
-                # return redirect(url_for('index'))
+                if ((devices_username != inputUsername) or (devices_password != inputPassword) or (devices_enable_password != inputEnablePassword)):
+                    flash("These are not the credentials from the inventory file! Please reconfigure the file accordingly.")
+                else:
+                    output = autosecure.do_autosecure(devices_ip, devices_ostype, devices_username, devices_password, devices_enable_password, vars_array)
+                    flash(output)
+                    return redirect(request.url)
 
 
-    inventories = Inventory.query.order_by(Inventory.name).all()
-    myDict = {}
-    for inventory in inventories:
-        key = inventory.name
-        inventory_id = inventory.id
+        elif template_type == "IPSG":
+            inputUsername = request.form['inputUsername']
+            inputPassword = request.form['inputPassword']
+            inputEnablePassword = request.form['inputEnablePassword']
+            inputInventory = request.form['inputInventory']
+            inputDevices = request.form['inputDevices']
+            inputType = request.form['inputType']
+            inputIpAddress = request.form['inputIpAddress']
+            inputMacAddress = request.form['inputMacAddress']
+            inputVlan = request.form['inputVlan']
+            inputInterface = request.form['inputInterface']
 
-        # select all devices categories for each inventory
-        devices = []
-        path = 'templates/myscripts/' + inventory.name
-        CONFIG_PATH = os.path.join(ROOT_DIR, path)  # requires `import os`
+            if not inputUsername:
+                flash('Username is required!')
+            elif not inputPassword:
+                flash('Password is required!')
+            elif not inputEnablePassword:
+                flash('Enable password is required!')
+            if not inputInventory:
+                flash('Inventory is required!')
+            elif not inputDevices:
+                flash('Devices are required!')
+            elif not inputInterface:
+                flash('Interface is required!')
+            elif not inputIpAddress:
+                flash('Ip address is required!')
+            elif not inputMacAddress:
+                flash('MAC address is required!')
+            elif not inputVlan:
+                flash('VLAN is required!')
+            elif validate_ip_address(inputIpAddress) == False:
+                flash('That is not a valid IP address!')
+            elif validate_mac_address(inputMacAddress) == False:
+                flash('That is not a valid MAC address!')
+            else:
+                path = 'templates/myscripts/' + inputInventory
+                CONFIG_PATH = os.path.join(ROOT_DIR, path)  # requires `import os`
+                devices_hostname, devices_ip, devices_ostype, devices_username, devices_password, devices_enable_password = netmiko_get_devices_array.get_device_data(
+                    CONFIG_PATH, inputDevices)
+                if ((devices_username != inputUsername) or (devices_password != inputPassword) or (
+                        devices_enable_password != inputEnablePassword)):
+                    flash("These are not the credentials from the inventory file! Please reconfigure the file accordingly.")
+                elif napalm_retrieve_info.check_interface(inputInterface, devices_ip, devices_ostype, devices_username, devices_password, devices_enable_password) == 0:
+                    flash("The interface you entered is not present in all of the devices you selected!")
+                else:
+                    output = napalm_ip_source_guard.do_ipsg(devices_ip, devices_ostype, devices_username, devices_password,
+                                                      devices_enable_password, inputType,inputIpAddress, inputMacAddress, inputVlan, inputInterface)
+                    flash(output)
+                    return redirect(request.url)
 
-        devices = netmiko_get_inventory_elements.get_device_data(CONFIG_PATH)
+        elif template_type == "SecureBoot":
+            inputUsername = request.form['inputUsername']
+            inputPassword = request.form['inputPassword']
+            inputEnablePassword = request.form['inputEnablePassword']
+            inputInventory = request.form['inputInventory']
+            inputDevices = request.form['inputDevices']
 
-        # list
-        myDict[key] = devices
-    return MyView().render('admin/forms/{0}.html'.format(template_type), template_type=template_type, inventories=inventories, elements=myDict)
+            if not inputUsername:
+                flash('Username is required!')
+            elif not inputPassword:
+                flash('Password is required!')
+            elif not inputEnablePassword:
+                flash('Enable password is required!')
+            if not inputInventory:
+                flash('Inventory is required!')
+            elif not inputDevices:
+                flash('Devices are required!')
+            else:
+                path = 'templates/myscripts/' + inputInventory
+                CONFIG_PATH = os.path.join(ROOT_DIR, path)  # requires `import os`
+                devices_hostname, devices_ip, devices_ostype, devices_username, devices_password, devices_enable_password = netmiko_get_devices_array.get_device_data(
+                    CONFIG_PATH, inputDevices)
+                if ((devices_username != inputUsername) or (devices_password != inputPassword) or (
+                        devices_enable_password != inputEnablePassword)):
+                    flash("These are not the credentials from the inventory file! Please reconfigure the file accordingly.")
+                else:
+                    output = secure_boot.do_secureboot(devices_ip, devices_ostype, devices_username, devices_password,
+                                                      devices_enable_password, "archive_router_config")
+                    flash(output)
+                    return redirect(request.url)
+
+        elif template_type == "DAI":
+            inputUsername = request.form['inputUsername']
+            inputPassword = request.form['inputPassword']
+            inputEnablePassword = request.form['inputEnablePassword']
+            inputInventory = request.form['inputInventory']
+            inputDevices = request.form['inputDevices']
+            inputVLANs = request.form['inputVLANs']
+            inputUntrustedInterfaces = request.form['inputUntrustedInterfaces']
+            inputTrustedInterfaces = request.form['inputTrustedInterfaces']
+
+            if not inputUsername:
+                flash('Username is required!')
+            elif not inputPassword:
+                flash('Password is required!')
+            elif not inputEnablePassword:
+                flash('Enable password is required!')
+            if not inputInventory:
+                flash('Inventory is required!')
+            elif not inputDevices:
+                flash('Devices are required!')
+            else:
+                VLANs = split_string(inputVLANs)
+                trustedInterfaces = split_string(inputTrustedInterfaces)
+                untrustedInterfaces = split_string(inputUntrustedInterfaces)
+                path = 'templates/myscripts/' + inputInventory
+                CONFIG_PATH = os.path.join(ROOT_DIR, path)  # requires `import os`
+                devices_hostname, devices_ip, devices_ostype, devices_username, devices_password, devices_enable_password = netmiko_get_devices_array.get_device_data(
+                    CONFIG_PATH, inputDevices)
+                if ((devices_username != inputUsername) or (devices_password != inputPassword) or (
+                        devices_enable_password != inputEnablePassword)):
+                    flash("These are not the credentials from the inventory file! Please reconfigure the file accordingly.")
+                    for inputInterface in trustedInterfaces:
+                        if napalm_retrieve_info.check_interface(inputInterface, devices_ip, devices_ostype, devices_username, devices_password, devices_enable_password) == 0:
+                            flash("The trusted interface you entered is not present in all of the devices you selected!")
+                    for inputInterface in untrustedInterfaces:
+                        if napalm_retrieve_info.check_interface(inputInterface, devices_ip, devices_ostype, devices_username, devices_password, devices_enable_password) == 0:
+                            flash("The untrusted interface you entered is not present in all of the devices you selected!")
+                else:
+                    output = dai.dai(devices_ip, devices_ostype, devices_username, devices_password,
+                                                      devices_enable_password, VLANs, trustedInterfaces, untrustedInterfaces)
+                    flash(output)
+                    return redirect(request.url)
+
+        elif template_type == "Hostnames":
+            inputUsername = request.form['inputUsername']
+            inputPassword = request.form['inputPassword']
+            inputEnablePassword = request.form['inputEnablePassword']
+            inputInventory = request.form['inputInventory']
+            inputDevices = request.form['inputDevices']
+
+            if not inputUsername:
+                flash('Username is required!')
+            elif not inputPassword:
+                flash('Password is required!')
+            elif not inputEnablePassword:
+                flash('Enable password is required!')
+            if not inputInventory:
+                flash('Inventory is required!')
+            elif not inputDevices:
+                flash('Devices are required!')
+            else:
+                path = 'templates/myscripts/' + inputInventory
+                CONFIG_PATH = os.path.join(ROOT_DIR, path)  # requires `import os`
+                devices_hostname, devices_ip, devices_ostype, devices_username, devices_password, devices_enable_password = netmiko_get_devices_array.get_device_data(
+                    CONFIG_PATH, inputDevices)
+                if ((devices_username != inputUsername) or (devices_password != inputPassword) or (
+                        devices_enable_password != inputEnablePassword)):
+                    flash("These are not the credentials from the inventory file! Please reconfigure the file accordingly.")
+                else:
+                    output = secure_boot.do_secureboot(devices_ip, devices_ostype, devices_username, devices_password,
+                                                      devices_enable_password, "archive_router_config")
+                    flash(output)
+                    return redirect(request.url)
+
+    return MyView().render('admin/forms/{0}.html'.format(template_type), template_type=template_type,
+                               inventories=inventories, elements=myDict)
 
 
 class AdminIndex(AdminIndexView):
@@ -398,7 +567,6 @@ admin = flask_admin.Admin(
 # Add model views
 # admin.add_view(MyModelView(Role, db.session, menu_icon_type='fa', menu_icon_value='fa-server', name="Roles"))
 admin.add_view(UserView(User, db.session, menu_icon_type='fa', menu_icon_value='fa-users', name="Users"))
-# admin.add_view(AutosecureModalView(name="Autosecure", endpoint='autosecure', menu_icon_type='fa', menu_icon_value='fa-connectdevelop'))
 admin.add_view(TemplateView(name="Templates", endpoint='templates', menu_icon_type='fa', menu_icon_value='fa-connectdevelop'))
 admin.add_view(NetworkView(Network, db.session, menu_icon_type='fa', menu_icon_value='fa-desktop', name="Networks"))
 admin.add_view(DeviceView(Device, db.session, menu_icon_type='fa', menu_icon_value='fa-server', name="Devices"))
@@ -448,13 +616,13 @@ def build_sample_db():
         # templates
         template1 = Template(name='AAA+TACACS')
         template2 = Template(name='ACL')
-        template3 = Template(name='DHCP snooping')
+        template3 = Template(name='DHCPSnooping')
         template4 = Template(name='FTP')
         template5 = Template(name='IPSG')
         template6 = Template(name='NTP')
         template7 = Template(name='OSPF')
         template8 = Template(name='SNMPv3')
-        template9 = Template(name='Static routes')
+        template9 = Template(name='StaticRoutes')
         template10 = Template(name='STP')
         template11 = Template(name='SYSLOG')
         template12 = Template(name='TFTP')
@@ -464,8 +632,9 @@ def build_sample_db():
         template16 = Template(name='DAI')
         template17 = Template(name='DTP')
         template18 = Template(name='Banners')
-        template19 = Template(name='Port security')
+        template19 = Template(name='PortSecurity')
         template20 = Template(name='Hostnames')
+        template21 = Template(name='SecureBoot')
         db.session.add(template1)
         db.session.add(template2)
         db.session.add(template3)
@@ -486,6 +655,7 @@ def build_sample_db():
         db.session.add(template18)
         db.session.add(template19)
         db.session.add(template20)
+        db.session.add(template21)
         db.session.commit()
 
         # devices
@@ -535,6 +705,11 @@ def build_sample_db():
             )
         db.session.commit()
     return
+
+app_dir = os.path.realpath(os.path.dirname(__file__))
+database_path = os.path.join(app_dir, app.config['DATABASE_FILE'])
+if not os.path.exists(database_path):
+    build_sample_db()
 
 if __name__ == '__main__':
 

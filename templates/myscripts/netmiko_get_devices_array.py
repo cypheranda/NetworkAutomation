@@ -41,7 +41,20 @@ def get_device_data(inventory, devices):
             devices_hostname.append(item.split()[0])
             devices_ip.append(item.split()[1].split('=')[1])
 
-    return devices_hostname, devices_ip, devices_ostype, devices_username, devices_password, devices_enable_password
+    converted_hostname_list = []
+    for element in devices_hostname:
+        converted_hostname_list.append(element.strip('\n'))
+
+    converted_ip_list = []
+    for element in devices_ip:
+        converted_ip_list.append(element.strip('\n'))
+
+    devices_ostype = devices_ostype.strip('\n')
+    devices_username = devices_username.strip('\n')
+    devices_password = devices_password.strip('\n')
+    devices_enable_password = devices_enable_password.strip('\n')
+
+    return converted_hostname_list, converted_ip_list, devices_ostype, devices_username, devices_password, devices_enable_password
 
 
 # devices_hostname, devices_ip, devices_ostype, devices_username, devices_password, devices_enable_password = get_device_data("inventory", "switches")

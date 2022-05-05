@@ -2,6 +2,7 @@
 from netmiko import ConnectHandler
 import re
 
+
 # list where informations will be stored
 
 # loop all ip addresses in ip_list

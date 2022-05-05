@@ -3,18 +3,20 @@ import os
 import tempfile
 import sys
 import io
-
+from subprocess import run
 import requests
-from netmiko import ConnectHandler
+from netmiko import ConnectHandler, NetMikoTimeoutException, NetMikoAuthenticationException
 from datetime import datetime
 import uuid
 
-from templates.myscripts import netmiko_check_autosecure_config, napalm_check_connectivity
+# from templates.myscripts import netmiko_check_autosecure_config, napalm_check_connectivity
+from templates.myscripts import netmiko_check_autosecure_config
 
 old_stdout = sys.stdout
 new_stdout = io.StringIO()
 sys.stdout = new_stdout
 output = ""
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Interactive full session of AutoSecure
 def autosecure_full(type, device, tmp_file, vars_array):
@@ -302,9 +304,10 @@ def send_commands(connection, tmp_file):
     f = open(tmp_file, "r")
     for line in f:
         result = connection.send_command_timing(line, 1, 150, True, True, True, False, None, False, None, False, False)
+        print("START RESULT")
         print(result)
-        output = new_stdout.getvalue()
-        sys.stdout = old_stdout
+        print("END RESULT")
+        output = result
 
     f.close()
 
@@ -324,16 +327,19 @@ def autosecure(device, vars_array):
 
     finally:
         print('Done!')
-        os.remove(tmp_file)
+        path = tmp_file
+        CONFIG_PATH = os.path.join(ROOT_DIR, path)
+        os.remove(path)
 
     print('Closing connection...')
     connection.disconnect()
 
-
 def do_autosecure(devices, os_type, username, password, enable, vars_array):
-    threads = list()
-
+    # mylist = devices.split(', ')
     for ip in devices:
+        if os_type == 'ios':
+            os_type = 'cisco_ios'
+
         cisco_device = {
             'device_type': os_type,
             'host': ip,
@@ -344,16 +350,21 @@ def do_autosecure(devices, os_type, username, password, enable, vars_array):
             'verbose': True  # optional, default False
         }
         # note that the enable secret and passwords are only sent once, the confirmation is interface-based
-        # vars_array = ['full', 'newbanner', 'abcdef', 'abcdfe', 'admindatabase', 'passdatabase', '1', '1', '1', 'yes', 'sshhost', 'ssh.com', 'yes']
-        th = threading.Thread(target=autosecure, args=(cisco_device, vars_array))
-        threads.append(th)
+        # vars_array = ['1', 'knot setk', 'not set', 'not set 2', 'not set', 'not set 3', '30', '30', '30', 'No', 'not set', 'not set', 'No', 'No']
 
-    for th in threads:
-        th.start()
+    try:
+        autosecure(cisco_device, vars_array)
+    except ConnectionRefusedError as err:
+        return f"Connection Refused: {err}"
+    except TimeoutError as err:
+        return f"Connection Refused: {err}"
+    except Exception as err:
+        return f"Oops! {err}"
 
-    for th in threads:
-        th.join()
-
-    return output
+    return "Successful config!"
 
 
+# vars_array = ['firewall', 'knot setk', 'not set', 'not set 2', 'not set', 'not set 3', '30', '30', '30', 'No', 'not set',
+#               'not set', 'No', 'No']
+#
+# do_autosecure('192.168.204.16', 'ios', 'admin', 'cisco', 'parola', vars_array)

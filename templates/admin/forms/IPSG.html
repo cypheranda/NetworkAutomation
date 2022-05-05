@@ -1,0 +1,158 @@
+{% extends 'admin/master.html' %}
+{% block body %}
+{{ super() }}
+
+{% if current_user.is_authenticated %}
+
+{% block content %}
+<section class="content-header">
+  <h1 >
+      {{ template_type }} form
+      <br><br><br>
+  </h1>
+</section>
+    <form method="post" style="text-indent: 40px">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <div class="form-group row">
+            <label for="inputUsername" class="col-sm-2 col-form-label">Username</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" name="inputUsername" placeholder="Username" value="{{ request.form['inputUsername'] }}"></input>
+            </div>
+          </div>
+        <div class="form-group row">
+            <label for="inputPassword" class="col-sm-2 col-form-label">Password</label>
+            <div class="col-sm-10">
+              <input type="password" class="form-control" name="inputPassword" placeholder="Password" value="{{ request.form['inputPassword'] }}"></input>
+            </div>
+          </div>
+            <div class="form-group row">
+            <label for="inputEnablePassword" class="col-sm-2 col-form-label">Enable password</label>
+            <div class="col-sm-10">
+              <input type="password" class="form-control" name="inputEnablePassword" placeholder="Enable password" value="{{ request.form['inputEnablePassword'] }}"></input>
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="inputInventory" data-live-search="true" class="col-sm-2 col-form-label">Inventory</label>
+            <div class="col-sm-10">
+                <select required="required" class="custom-select my-1 mr-sm-2" name="inputInventory" id="inputInventory" value="{{ request.form['inputInventory'] }}" onchange="myFunction()">
+                    <option value="">Choose...</option>
+                    {% for inventory in inventories %}
+                        <option data-id={{ inventory.name }} rel={{ inventory.name }} value={{ inventory.name }}>{{ inventory.name }}</option>
+                    {% endfor %}
+                  </select>
+            </div>
+          </div>
+        <div class="form-group row">
+            <label for="inputDevices" data-live-search="true" class="col-sm-2 col-form-label">Devices</label>
+            <div class="col-sm-10">
+                <select required="required" class="custom-select my-1 mr-sm-2" name="inputDevices" id="inputDevices" value="{{ request.form['inputDevices'] }}" style="display:none" onchange="showHiddenSelect2();">
+                    <option value="">Choose...</option>
+                    {% for key in elements.keys() %}
+                        {% for element in elements[key] %}
+                        <option style="display:none" class={{ key }} value={{ element }}>{{ element }}</option>
+                    {% endfor %}
+                {% endfor %}
+                  </select>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputInterface" class="col-sm-2 col-form-label">Interface</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" name="inputInterface" placeholder="Common interface" value="{{ request.form['inputInterface'] }}"></input>
+            </div>
+          </div>
+        <div class="form-group row">
+            <label for="inputType" class="col-sm-2 col-form-label">Type</label>
+            <div class="col-sm-10">
+                <select required="required" class="custom-select my-1 mr-sm-2" name="inputType" id="inputType">
+                    <option value="">Choose...</option>
+                    <option value="ipsg_enable">IP Source Guard       (AutoSecure Firewall)</option>
+                    <option value="static_binding">Static binding    (Secure Forwarding Plane - Interactive full session of AutoSecure)</option>
+                  </select>
+            </div>
+    </div>
+        <div class="form-group row">
+            <label for="inputIpAddress" class="col-sm-2 col-form-label">Ip Address</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" name="inputIpAddress" id="inputIpAddress" placeholder="Enter binding ip address" value="{{ request.form['inputIpAddress'] }}" readonly="true"></input>
+            </div>
+    </div>
+        <div class="form-group row">
+            <label for="inputMacAddress" class="col-sm-2 col-form-label">MAC Address</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" name="inputMacAddress" id="inputMacAddress" placeholder="Enter binding MAC address" value="{{ request.form['inputMacAddress'] }}" readonly="true"></input>
+            </div>
+    </div>
+    <div class="form-group row">
+            <label for="inputVlan" class="col-sm-2 col-form-label">VLAN</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" name="inputVlan" id="inputVlan" placeholder="Enter binding VLAN" value="{{ request.form['inputVlan'] }}" readonly="true">
+                <span id='message'></span>
+            </div>
+    </div>
+              <div class="form-check">
+      <input class="form-check-input" type="checkbox" value="" name="defaultCheck" id="defaultCheck" required>
+      <label class="form-check-label" for="defaultCheck">
+        Please note that this configuration is only for switches
+      </label>
+      <br><br>
+    </div>
+                      <div class="form-group row">
+            <div class="col-sm-10">
+              <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+          </div>
+    </form>
+{% endblock %}
+  {% endif %}
+    <script>
+    $(document).ready(function(){
+    var $cat = $('select[name=inputInventory]'),
+    $items = $('select[name=inputDevices]');
+
+    $cat.change(function(){
+
+        var $this = $(this).find(':selected'),
+        rel = $this.attr('rel');
+
+        // Hide all
+        $items.find("option").hide();
+
+        // Find all matching accessories
+        // Show all the correct accesories
+        // Select the first accesory
+        $set = $items.find('option.' + rel);
+        $set.show().first().prop('selected', true);
+
+    });
+});
+
+    function showHiddenSelect2() {
+        {#var Inventoryvalue = document.getElementById('inputInventory').value;#}
+        document.getElementById('inputInterface').style.display='block'; }
+
+        document.getElementById('inputType').addEventListener('change', function() {
+            if (this.value == 'ipsg_enable') {
+                document.getElementById('inputIpAddress').readOnly = true;
+                document.getElementById('inputIpAddress').value = "111.111.111.111";
+                document.getElementById('inputMacAddress').readOnly = true;
+                document.getElementById('inputMacAddress').value = "00:29:15:80:4E:4A";
+                document.getElementById('inputVlan').readOnly = true;
+                document.getElementById('inputVlan').value = "not set";
+        }
+            else if (this.value == 'static_binding'){
+                document.getElementById('inputIpAddress').readOnly = false;
+                document.getElementById('inputMacAddress').readOnly = false;
+                document.getElementById('inputVlan').readOnly = false;
+            }
+            })
+
+
+function myFunction() {
+    document.getElementById('inputDevices').style.display='block';
+}
+
+
+    </script>
+
+  {% endblock body %}
