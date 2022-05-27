@@ -1,0 +1,11 @@
+---
+- name: Merged state play
+  hosts: "{{ variable_host }}"
+  gather_facts: false
+  tasks:
+    - name: modify ACLs config
+      cisco.ios.ios_acls:
+        state: "{{ state }}" #merged/replaced/overridden/deleted/rendered
+        config: "{{ acls }}" #se ia automat din host_vars
+
+# ansible-playbook -i inventory ios_acl_config.yaml --extra-vars "state='deleted'" -vvv

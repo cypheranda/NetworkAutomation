@@ -7,38 +7,6 @@ import uuid
 import time
 
 from napalm import get_network_driver
-ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-
-def do_enable_scp(devices, os_type, username, password, enable):
-    if os_type == 'cisco_ios':
-        os_type = 'ios'
-    for ip in devices:
-        cisco_device = {
-                   'device_type': 'cisco_ios',
-                   'host': ip,
-                   'username': username,
-                   'password': password,
-                   'port': '22',             # optional, default 22
-                   'secret': enable,      # this is the enable password
-                   'verbose': True         # optional, default False
-                   }
-
-
-        connection = ConnectHandler(**cisco_device)
-        prompter = connection.find_prompt()
-        if '>' in prompter:
-            connection.enable()
-
-        if not connection.check_config_mode():
-            connection.config_mode()
-
-        connection.send_command('aaa new-model\n')
-        connection.send_command('aaa authentication login default local\n')
-        connection.send_command('aaa authorization exec default local none\n')
-        connection.send_command('username ' + username + ' privilege 15 password ' + password +'\n')
-        connection.send_command('ip scp server enable\n')
-
-        connection.disconnect()
 
 do_enable = 'yes'
 
@@ -76,29 +44,27 @@ def static_binding(tmp_file, do_enable, IP_ADDRESS, MAC_ADDRESS, VLAN, INTERFACE
 
 def do_ipsg(devices, os_type, username, password, enable, config_type, IP_ADDRESS, MAC_ADDRESS, VLAN, INTERFACE):
 
-    try:
-        do_enable_scp(devices, os_type, username, password, enable)
-        # ssh params
+    # ssh params
 
-        for ip in devices:
-            # enable or disable IP source guard on interface
-            # configuration parameters
+    for ip in devices:
+        # enable or disable IP source guard on interface
+        # configuration parameters
 
-            # add or remove static IP source entry
-            # example: Switch(config)# ip source binding 0011.0011.0011 vlan 5 10.1.1.11 interface GigabitEthernet1/0/2
-            # configuration parameters
+        # add or remove static IP source entry
+        # example: Switch(config)# ip source binding 0011.0011.0011 vlan 5 10.1.1.11 interface GigabitEthernet1/0/2
+        # configuration parameters
 
-            if os_type == 'cisco_ios':
-                os_type='ios'
+        if os_type == 'cisco_ios':
+            driver = get_network_driver('ios')
 
-            driver = get_network_driver(os_type)
-            optional_args = {'secret': enable, 'global_delay_factor': 2}
-            ios = driver(ip, username, password, optional_args=optional_args)
-            ios.open()
+        optional_args = {'secret': enable, 'global_delay_factor': 2}
+        ios = driver(ip, username, password, optional_args=optional_args)
+        ios.open()
 
-            # create a temporary file to create the config
-            tmp_file = str(uuid.uuid4())
+        # create a temporary file to create the config
+        tmp_file = str(uuid.uuid4())
 
+        try:
             if config_type == 'ipsg_enable':
                 ipsg_enable(tmp_file, do_enable, INTERFACE)
             elif config_type == 'static_binding':
@@ -107,21 +73,19 @@ def do_ipsg(devices, os_type, username, password, enable, config_type, IP_ADDRES
 
             ios.load_merge_candidate(tmp_file)
             ios.commit_config()
-    except ConnectionRefusedError as err:
-        return f"Connection Refused: {err}"
-    except TimeoutError as err:
-        return f"Connection Refused: {err}"
-    except Exception as err:
-        return f"Oops! {err}"
+        except ConnectionRefusedError as err:
+            return f"Connection Refused: {err}"
+        except TimeoutError as err:
+            return f"Connection Refused: {err}"
+        except Exception as err:
+            return f"Oops! {err}"
 
+        os.remove(tmp_file)
 
-    path = tmp_file
-    CONFIG_PATH = os.path.join(ROOT_DIR, path)
-    os.remove(path)
+        print('Closing connection...')
+        ios.close()
 
-    return "Successful configuration!"
-    print('Closing connection...')
-    ios.close()
+    return "Successful interfaces!"
 
 
 # do_ipsg('192.168.204.16', 'cisco_ios', 'admin', 'cisco', 'parola', 'static_binding', '111.111.111.111', '00:29:15:80:4E:4A', '102', 'GigabitEthernet0/0')

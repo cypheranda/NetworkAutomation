@@ -1,0 +1,169 @@
+{% extends 'admin/master.html' %}
+{% block body %}
+{{ super() }}
+
+{% if current_user.is_authenticated %}
+
+{% block content %}
+<section class="content-header">
+  <h1 >
+      {{ template_type }} form
+      <br><br><br>
+  </h1>
+</section>
+    <form method="post" style="text-indent: 40px">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <div class="form-group row">
+            <label for="inputUsername" class="col-sm-2 col-form-label">Username</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" name="inputUsername" placeholder="Username" value="{{ request.form['inputUsername'] }}"></input>
+            </div>
+          </div>
+        <div class="form-group row">
+            <label for="inputPassword" class="col-sm-2 col-form-label">Password</label>
+            <div class="col-sm-10">
+              <input type="password" class="form-control" name="inputPassword" placeholder="Password" value="{{ request.form['inputPassword'] }}"></input>
+            </div>
+          </div>
+            <div class="form-group row">
+            <label for="inputEnablePassword" class="col-sm-2 col-form-label">Enable password</label>
+            <div class="col-sm-10">
+              <input type="password" class="form-control" name="inputEnablePassword" placeholder="Enable password" value="{{ request.form['inputEnablePassword'] }}"></input>
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="inputInventory" data-live-search="true" class="col-sm-2 col-form-label">Inventory</label>
+            <div class="col-sm-10">
+                <select required="required" class="custom-select my-1 mr-sm-2" name="inputInventory" id="inputInventory" value="{{ request.form['inputInventory'] }}" onchange="myFunction()">
+                    <option value="">Choose...</option>
+                    {% for inventory in inventories %}
+                        <option data-id={{ inventory.name }} rel={{ inventory.name }} value={{ inventory.name }}>{{ inventory.name }}</option>
+                    {% endfor %}
+                  </select>
+            </div>
+          </div>
+        <div class="form-group row">
+            <label for="inputDevices" data-live-search="true" class="col-sm-2 col-form-label">Devices</label>
+            <div class="col-sm-10">
+                <select required="required" class="custom-select my-1 mr-sm-2" name="inputDevices" id="inputDevices" value="{{ request.form['inputDevices'] }}" style="display:none" onchange="showHiddenSelect2();">
+                    <option value="">Choose...</option>
+                    {% for key in elements.keys() %}
+                        {% for element in elements[key] %}
+                        <option style="display:none" class={{ key }} value={{ element }}>{{ element }}</option>
+                    {% endfor %}
+                {% endfor %}
+                  </select>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputSyslogServer" class="col-sm-2 col-form-label">Syslog server address</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" name="inputSyslogServer" placeholder="Syslog server" value="{{ request.form['inputSyslogServer'] }}"></input>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputTimestamps" data-live-search="true" class="col-sm-2 col-form-label">Timestamps messages</label>
+            <div class="col-sm-10">
+                <select required="required" class="custom-select my-1 mr-sm-2" name="inputTimestamps" id="inputTimestamps" value="{{ request.form['inputTimestamps'] }}">
+                    <option value="">Choose...</option>
+                        <option value="debug">Timestamp debug messages</option>
+                    <option value="log">Timestamp log messages</option>
+                  </select>
+            </div>
+          </div>
+        <div class="form-group row">
+            <label for="inputDatetime" data-live-search="true" class="col-sm-2 col-form-label">Timestamp with date and time</label>
+            <div class="col-sm-10">
+                <select required="required" class="custom-select my-1 mr-sm-2" name="inputDatetime" id="inputDatetime" value="{{ request.form['inputDatetime'] }}">
+                    <option value="">Choose...</option>
+                        <option value="localtime">Use local time zone for timestamps</option>
+                    <option value="msec">Include milliseconds in timestamp</option>
+                    <option value="show-timezone">Add time zone information to timestamp</option>
+                    <option value="year">Include year in timestamp</option>
+                  </select>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputFacility" data-live-search="true" class="col-sm-2 col-form-label">Facility parameter for syslog messages</label>
+            <div class="col-sm-10">
+                <select required="required" class="custom-select my-1 mr-sm-2" name="inputFacility" id="inputFacility" value="{{ request.form['inputFacility'] }}">
+                    <option value="">Choose...</option>
+                        <option value="auth">Authorization system</option>
+                    <option value="cron">Cron/at facility</option>
+                    <option value="daemon">System daemons</option>
+                    <option value="kern">Kernel</option>
+                    <option value="local0">Local use local0</option>
+                    <option value="local1">Local use local1</option>
+                    <option value="local2">Local use local2</option>
+                    <option value="local3">Local use local3</option>
+                    <option value="local4">Local use local4</option>
+                    <option value="local5">Local use local5</option>
+                    <option value="local6">Local use local6</option>
+                    <option value="local7">Local use local7</option>
+                    <option value="lpr">Line printer system</option>
+                    <option value="mail">Mail system</option>
+                    <option value="news">USENET news</option>
+                    <option value="sys9">System use sys9</option>
+                    <option value="sys10">System use sys10</option>
+                    <option value="sys11">System use sys11</option>
+                    <option value="sys12">System use sys12</option>
+                    <option value="sys13">System use sys13</option>
+                    <option value="sys14">System use sys14</option>
+                    <option value="syslog">Syslog itself</option>
+                    <option value="user">User process</option>
+                    <option value="uucp">Unix-to-Unix copy system</option>
+                  </select>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputTrap" data-live-search="true" class="col-sm-2 col-form-label">Set syslog server logging level</label>
+            <div class="col-sm-10">
+                <select required="required" class="custom-select my-1 mr-sm-2" name="inputTrap" id="inputTrap" value="{{ request.form['inputTrap'] }}">
+                    <option value="">Choose...</option>
+                        <option value="alerts">Immediate action needed</option>
+                    <option value="critical">Critical conditions</option>
+                    <option value="debugging">Debugging messages</option>
+                    <option value="emergencies">System is unusable</option>
+                    <option value="errors">Error conditions</option>
+                    <option value="informational">Informational messages</option>
+                    <option value="notifications">Normal but significant conditions</option>
+                    <option value="warnings">Warning conditions</option>
+                  </select>
+            </div>
+          </div>
+                      <div class="form-group row">
+            <div class="col-sm-10">
+              <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+          </div>
+    </form>
+{% endblock %}
+  {% endif %}
+    <script>
+    $(document).ready(function(){
+    var $cat = $('select[name=inputInventory]'),
+    $items = $('select[name=inputDevices]');
+
+    $cat.change(function(){
+
+        var $this = $(this).find(':selected'),
+        rel = $this.attr('rel');
+
+        // Hide all
+        $items.find("option").hide();
+
+        // Find all matching accessories
+        // Show all the correct accesories
+        // Select the first accesory
+        $set = $items.find('option.' + rel);
+        $set.show().first().prop('selected', true);
+
+    });
+});
+
+function myFunction() {
+    document.getElementById('inputDevices').style.display='block';
+}
+    </script>
+
+  {% endblock body %}

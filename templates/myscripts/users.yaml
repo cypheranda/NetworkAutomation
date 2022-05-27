@@ -1,7 +1,7 @@
 ---
 - name: Configuring Cisco IOS Users
   gather_facts: no
-  hosts: R1
+  hosts: "{{ variable_host }}"
   connection: network_cli
 
   tasks:
@@ -14,13 +14,6 @@
         password_type: "{{ password_type }}"
         configured_password: "{{ new_password }}"
       tags: create_new_user_password
-    - name: Create a new user with a public key
-      ios_user:
-        name: "{{ new_user }}"
-        nopassword: true
-        sshkey: "{{ lookup('file', '/root/.ssh/{{ new_key }}') }}"
-        state: present
-      tags: create_new_user_key
     - name: Remove all users except admin
       ios_user:
         purge: yes
@@ -32,7 +25,7 @@
       ios_user:
         name: "{{ to_remove_user }}"
         state: absent
-      tags: remove_users
+      tags: remove_user
     - name: Set user privilege level
       ios_user:
         name: "{{ user }}"
@@ -45,6 +38,7 @@
         configured_password: "{{ new_password }}"
         password_type: "{{ password_type }}"
         state: present
+      tags: set_new_password
 ...
 
 # Command to run:

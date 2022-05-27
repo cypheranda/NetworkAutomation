@@ -1,0 +1,8 @@
+---
+- name: Deleted state play
+  hosts: "{{ variable_host }}"
+  gather_facts: false
+  tasks:
+    - name: Delete ALL configured ACLs w/o passing any config
+      cisco.ios.ios_acls:
+        state: deleted

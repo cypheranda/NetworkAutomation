@@ -9,7 +9,7 @@
         <div class="col-12">
           <h1>Templates</h1>
           <ul class="list-group">
-              <form action="#" method="post">
+              <form action="" method="post">
                   {% for item in templates %}
                      <a class="list-group-item" href={{ url_for('find_template', template_type=item ) }} >{{ item }}</a>
                   {% endfor %}

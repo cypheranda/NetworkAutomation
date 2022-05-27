@@ -1,0 +1,14 @@
+---
+- name: RESTORE CONFIGURATION
+  hosts: "{{ variable_host }}"
+  connection: network_cli
+  gather_facts: no
+
+  tasks:
+    - name: CONFIG REPLACE
+      ios_command:
+        commands:
+          - config replace flash0:{{inventory_hostname}}.finalconfig force
+...
+
+# ansible-playbook -i ./inventory ios_load_config.yaml --extra-vars "variable_host=routers"

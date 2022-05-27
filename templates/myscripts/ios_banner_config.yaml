@@ -1,0 +1,72 @@
+---
+- name: Configuring Cisco IOS Banner
+  gather_facts: no
+  hosts: "{{ variable_host }}"
+  connection: network_cli
+
+  tasks:
+    - name: Update to default motd banner
+      ios_banner:
+        banner: motd
+        text: "{{ motd_banner }}"
+        state: "{{ motd_state }}"
+      tags: default_motd
+    - name: Update motd banner
+      ios_banner:
+        banner: motd
+        text: "{{ motd_banner }}"
+        state: "{{ motd_state }}"
+      tags: motd
+    - name: Update to default login banner
+      ios_banner:
+        banner: login
+        text: "{{ login_banner }}"
+        state: "{{ login_state }}"
+      tags: default_login
+    - name: Update login banner
+      ios_banner:
+        banner: login
+        text: |
+          ----------------------------------------
+          |
+          | This banner was generated for network
+          | automation purposes
+          |
+          ----------------------------------------
+          |
+          | You are logged into {{ inventory_hostname }}
+          |
+          ----------------------------------------
+          | {{ login_banner }}
+          ----------------------------------------
+        state: "{{ login_state }}"
+      tags: login
+    - name: Update to default exec banner
+      ios_banner:
+        banner: exec
+        text: "{{ exec_banner }}"
+        state: "{{ exec_state }}"
+      tags: default_exec
+    - name: Update exec banner
+      ios_banner:
+        banner: exec
+        text: "{{ exec_banner }}"
+        state: "{{ exec_state }}"
+      tags: exec
+    - name: Update to default incoming banner
+      ios_banner:
+        banner: incoming
+        text: "{{ incoming_banner }}"
+        state: "{{ incoming_state }}"
+      tags: default_incoming
+    - name: Update incoming banner
+      ios_banner:
+        banner: incoming
+        text: "{{ incoming_banner }}"
+        state: "{{ incoming_state }}"
+      tags: incoming
+...
+
+# Command to run:
+# ansible-playbook -i inventory ios_banner_config.yaml --tags="motd,login,default_exec,incoming" --extra-vars "variable_host=routers motd_banner='' motd_state='absent' login_banner='Welcome' login_state='present' exec_banner='Please log out immediately if you are not an authorized administrator.' exec_state='present' incoming_banner='hey' incoming_state='present'"
+

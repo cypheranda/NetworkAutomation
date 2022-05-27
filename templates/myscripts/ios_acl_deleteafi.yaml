@@ -1,0 +1,10 @@
+---
+- name: Deleted state play
+  hosts: routers
+  gather_facts: false
+  tasks:
+    - name: Delete afi configured ACLs
+      cisco.ios.ios_acls:
+        config:
+          - afi: "{{ afi_type }}"
+        state: deleted

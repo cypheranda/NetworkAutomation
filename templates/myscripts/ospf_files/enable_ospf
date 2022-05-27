@@ -1,0 +1,3 @@
+router ospf process_id
+network ip_address wildcard_mask area area_id
+end

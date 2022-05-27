@@ -1,0 +1,4 @@
+router ospf process_id
+interface number
+ip ospf demand-circuit
+end

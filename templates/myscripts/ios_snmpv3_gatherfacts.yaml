@@ -1,0 +1,21 @@
+---
+- name: convert configured SNMPv3 to structured data
+  hosts: "{{ variable_host }}"
+  gather_facts: false
+  tasks:
+
+
+    - name: Use the SNMP resource module to gather the current config
+      cisco.ios.ios_snmp_server:
+        state: gathered
+      register: snmpv3
+
+    - name: Create inventory directory
+      file:
+        path: "{{ inventory_dir }}/host_vars/{{ inventory_hostname }}"
+        state: directory
+
+    - name: Write the SNMPv3 configuration to a file
+      copy:
+        content: "{{ {'snmpv3': snmpv3['gathered']} | to_nice_yaml(indent=2) }}"
+        dest: "{{ inventory_dir }}/host_vars/{{ inventory_hostname }}/snmp3.yaml"

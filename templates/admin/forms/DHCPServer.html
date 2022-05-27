@@ -1,0 +1,179 @@
+{% extends 'admin/master.html' %}
+{% block body %}
+{{ super() }}
+
+{% if current_user.is_authenticated %}
+
+{% block content %}
+<section class="content-header">
+  <h1 >
+      {{ template_type }} form
+      <br><br><br>
+  </h1>
+</section>
+    <form method="post" style="text-indent: 40px">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <div class="form-group row">
+            <label for="inputUsername" class="col-sm-2 col-form-label">Username</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" name="inputUsername" placeholder="Username" value="{{ request.form['inputUsername'] }}"></input>
+            </div>
+          </div>
+        <div class="form-group row">
+            <label for="inputPassword" class="col-sm-2 col-form-label">Password</label>
+            <div class="col-sm-10">
+              <input type="password" class="form-control" name="inputPassword" placeholder="Password" value="{{ request.form['inputPassword'] }}"></input>
+            </div>
+          </div>
+            <div class="form-group row">
+            <label for="inputEnablePassword" class="col-sm-2 col-form-label">Enable password</label>
+            <div class="col-sm-10">
+              <input type="password" class="form-control" name="inputEnablePassword" placeholder="Enable password" value="{{ request.form['inputEnablePassword'] }}"></input>
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="inputInventory" data-live-search="true" class="col-sm-2 col-form-label">Inventory</label>
+            <div class="col-sm-10">
+                <select required="required" class="custom-select my-1 mr-sm-2" name="inputInventory" id="inputInventory" value="{{ request.form['inputInventory'] }}" onchange="myFunction()">
+                    <option value="">Choose...</option>
+                    {% for inventory in inventories %}
+                        <option data-id={{ inventory.name }} rel={{ inventory.name }} value={{ inventory.name }}>{{ inventory.name }}</option>
+                    {% endfor %}
+                  </select>
+            </div>
+          </div>
+        <div class="form-group row">
+            <label for="inputDevices" data-live-search="true" class="col-sm-2 col-form-label">Devices</label>
+            <div class="col-sm-10">
+                <select required="required" class="custom-select my-1 mr-sm-2" name="inputDevices" id="inputDevices" value="{{ request.form['inputDevices'] }}" style="display:none" onchange="showHiddenSelect2();">
+                    <option value="">Choose...</option>
+                    {% for key in elements.keys() %}
+                        {% for element in elements[key] %}
+                        <option style="display:none" class={{ key }} value={{ element }}>{{ element }}</option>
+                    {% endfor %}
+                {% endfor %}
+                  </select>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputExcludeFromIP" class="col-sm-2 col-form-label">Starting exclude IP address</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" name="inputExcludeFromIP" id="inputExcludeFromIP" placeholder="Start from this address" value="{{ request.form['inputExcludeFromIP'] }}"></input>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputExcludeToIP" class="col-sm-2 col-form-label">Ending exclude IP address</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" name="inputExcludeToIP" id="inputExcludeToIP" placeholder="Ending with this address" value="{{ request.form['inputExcludeToIP'] }}"></input>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputPool" class="col-sm-2 col-form-label">DHCP pool name</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" name="inputPool" id="inputPool" placeholder="Pool name" value="{{ request.form['inputPool'] }}"></input>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputNetworkIP" class="col-sm-2 col-form-label">Network IP</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" name="inputNetworkIP" id="inputNetworkIP" placeholder="Ip address" value="{{ request.form['inputNetworkIP'] }}"></input>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputNetworkMask" class="col-sm-2 col-form-label">Network mask</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" name="inputNetworkMask" id="inputNetworkMask" placeholder="Mask" value="{{ request.form['inputNetworkMask'] }}"></input>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputLeaseOption" class="col-sm-2 col-form-label">Lease each IP address for how long (in days)</label>
+            <div class="col-sm-10">
+              <input type="radio" required name="inputLeaseOption" id="days" value="days" onclick="handleClick(this);"> Choose the number of days to lease IP address </input>
+                <input type="radio" name="inputLeaseOption" id="infinite" value="infinite" onclick="handleClick(this);"> Lease IP addresses infinitely </input>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputLease" class="col-sm-2 col-form-label">Lease days</label>
+            <div class="col-sm-10">
+              <input type="number" required class="form-control" name="inputLease" id="inputLease" min="0" max="365" placeholder="0-365" value="{{ request.form['inputLease'] }}" readonly="true"></input>
+            </div>
+    </div>
+    <div class="form-group row">
+            <label for="inputDefaultRouter" class="col-sm-2 col-form-label">Default gateway</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" name="inputDefaultRouter" id="inputDefaultRouter" placeholder="Configure the interface with this IP as the default gateway for DHCP clients from this pool" value="{{ request.form['inputDefaultRouter'] }}"></input>
+            </div>
+          </div>
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" value="" name="defaultCheck" id="defaultCheck" required>
+      <label class="form-check-label" for="defaultCheck">
+        Please note that this configuration will be automatically saved to device startup-configuration
+      </label>
+      <br><br>
+    </div>
+                      <div class="form-group row">
+            <div class="col-sm-10">
+              <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+          </div>
+    </form>
+{% endblock %}
+  {% endif %}
+    <script>
+    $(document).ready(function(){
+    var $cat = $('select[name=inputInventory]'),
+    $items = $('select[name=inputDevices]');
+
+    $cat.change(function(){
+
+        var $this = $(this).find(':selected'),
+        rel = $this.attr('rel');
+
+        // Hide all
+        $items.find("option").hide();
+
+        // Find all matching accessories
+        // Show all the correct accesories
+        // Select the first accesory
+        $set = $items.find('option.' + rel);
+        $set.show().first().prop('selected', true);
+
+    });
+});
+
+    $(document).ready(function(){
+    var $cat = $('select[name=inputType]'),
+    $items = $('select[name=inputFeature]');
+
+    $cat.change(function(){
+
+        var $this = $(this).find(':selected'),
+        rel = $this.attr('rel');
+
+        // Hide all
+        $items.find("option").hide();
+
+        // Find all matching accessories
+        // Show all the correct accesories
+        // Select the first accesory
+        $set = $items.find('option.' + rel);
+        $set.show().first().prop('selected', true);
+
+    });
+});
+
+function myFunction() {
+    document.getElementById('inputDevices').style.display='block';
+}
+
+    function handleClick(myRadio) {
+            if (myRadio.value == 'days') {
+                document.getElementById('inputLease').readOnly = false;
+            } else if (myRadio.value == 'infinite') {
+                document.getElementById('inputLease').readOnly = true;
+            }
+        }
+
+    </script>
+
+  {% endblock body %}

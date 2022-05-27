@@ -1,0 +1,139 @@
+{% extends 'admin/master.html' %}
+{% block body %}
+{{ super() }}
+
+{% if current_user.is_authenticated %}
+
+{% block content %}
+<section class="content-header">
+  <h1 >
+      {{ template_type }} form
+      <br><br><br>
+  </h1>
+</section>
+    <form method="post" style="text-indent: 40px">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <div class="form-group row">
+            <label for="inputUsername" class="col-sm-2 col-form-label">Username</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" name="inputUsername" placeholder="Username" value="{{ request.form['inputUsername'] }}"></input>
+            </div>
+          </div>
+        <div class="form-group row">
+            <label for="inputPassword" class="col-sm-2 col-form-label">Password</label>
+            <div class="col-sm-10">
+              <input type="password" class="form-control" name="inputPassword" placeholder="Password" value="{{ request.form['inputPassword'] }}"></input>
+            </div>
+          </div>
+            <div class="form-group row">
+            <label for="inputEnablePassword" class="col-sm-2 col-form-label">Enable password</label>
+            <div class="col-sm-10">
+              <input type="password" class="form-control" name="inputEnablePassword" placeholder="Enable password" value="{{ request.form['inputEnablePassword'] }}"></input>
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="inputInventory" data-live-search="true" class="col-sm-2 col-form-label">Inventory</label>
+            <div class="col-sm-10">
+                <select required="required" class="custom-select my-1 mr-sm-2" name="inputInventory" id="inputInventory" value="{{ request.form['inputInventory'] }}" onchange="myFunction()">
+                    <option value="">Choose...</option>
+                    {% for inventory in inventories %}
+                        <option data-id={{ inventory.name }} rel={{ inventory.name }} value={{ inventory.name }}>{{ inventory.name }}</option>
+                    {% endfor %}
+                  </select>
+            </div>
+          </div>
+        <div class="form-group row">
+            <label for="inputDevices" data-live-search="true" class="col-sm-2 col-form-label">Devices</label>
+            <div class="col-sm-10">
+                <select required="required" class="custom-select my-1 mr-sm-2" name="inputDevices" id="inputDevices" value="{{ request.form['inputDevices'] }}" style="display:none" onchange="showHiddenSelect2();">
+                    <option value="">Choose...</option>
+                    {% for key in elements.keys() %}
+                        {% for element in elements[key] %}
+                        <option style="display:none" class={{ key }} value={{ element }}>{{ element }}</option>
+                    {% endfor %}
+                {% endfor %}
+                  </select>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputACLOption" data-live-search="true" class="col-sm-2 col-form-label">Choose what to do</label>
+            <div class="col-sm-10">
+                <select required="required" class="custom-select my-1 mr-sm-2" name="inputACLOption" id="inputACLOption" value="{{ request.form['inputACLOption'] }}"  onchange="myFunction2()">
+                    <option value="">Choose...</option>
+                        <option value="gather">Gather and store acl configuration</option>
+                    <option value="deleteall">Delete full acl configuration</option>
+                    <option value="deleteafi">Delete afi(ipv4 or 6) acl configuration</option>
+                    <option value="load">Load acl configuration</option>
+                  </select>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputAFI" data-live-search="true" class="col-sm-2 col-form-label">AFI</label>
+            <div class="col-sm-10">
+                <select required="required" class="custom-select my-1 mr-sm-2" name="inputAFI" id="inputAFI" value="{{ request.form['inputAFI'] }}" style="display:none" onchange="showHiddenSelect3();">
+                    <option value="">Choose...</option>
+                        <option style="display:none" name="ipv4" id="ipv4" value="ipv4">IPv4</option>
+                        <option style="display:none" name="ipv6" id="ipv6" value="ipv6">IPv6</option>
+                  </select>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputLoadOption" class="col-sm-2 col-form-label">Choose how to load your file, choose either if you chose not to load</label>
+            <div class="col-sm-10">
+              <input type="radio" required name="inputLoadOption" id="merged" value="merged"> Merge </input>
+                <input type="radio" name="inputLoadOption" id="inputLoadOption" value="replaced"> Replace </input>
+                <input type="radio" name="inputLoadOption" id="inputLoadOption" value="overridden"> Override </input>
+                <input type="radio" name="inputLoadOption" id="inputLoadOption" value="rendered"> Render </input>
+                <input type="radio" name="inputLoadOption" id="inputLoadOption" value="deleted"> Delete </input>
+            </div>
+          </div>
+                      <div class="form-group row">
+            <div class="col-sm-10">
+              <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+          </div>
+    </form>
+{% endblock %}
+  {% endif %}
+    <script>
+    $(document).ready(function(){
+    var $cat = $('select[name=inputInventory]'),
+    $items = $('select[name=inputDevices]');
+
+    $cat.change(function(){
+
+        var $this = $(this).find(':selected'),
+        rel = $this.attr('rel');
+
+        // Hide all
+        $items.find("option").hide();
+
+        // Find all matching accessories
+        // Show all the correct accesories
+        // Select the first accesory
+        $set = $items.find('option.' + rel);
+        $set.show().first().prop('selected', true);
+
+    });
+});
+
+
+function myFunction() {
+    document.getElementById('inputDevices').style.display='block';
+}
+function myFunction2() {
+    if (document.getElementById('inputACLOption').value == "deleteafi"){
+        document.getElementById('inputAFI').style.display='block';
+        document.getElementById('ipv4').style.display='block';
+        document.getElementById('ipv6').style.display='block';
+    }
+    else {
+        document.getElementById('inputAFI').style.display='none';
+        document.getElementById('ipv4').style.display='none';
+        document.getElementById('ipv6').style.display='none';
+    }
+}
+
+    </script>
+
+  {% endblock body %}

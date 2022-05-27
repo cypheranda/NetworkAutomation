@@ -1,0 +1,16 @@
+---
+- name: Configuring Cisco IOS Domain Name
+  hosts: "{{ variable_host }}"
+  gather_facts: false
+  connection: network_cli
+
+  tasks:
+    - name: configure domain name
+      ios_config:
+         lines: ip domain-name {{ domain_name }}
+    - name: Printing at the console
+      debug: var=output
+...
+# Command to run:
+# ansible-playbook -i inventory set_domain_name.yaml --extra-vars "variable_host=routers domain_name=net.com"
+

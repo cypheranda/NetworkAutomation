@@ -336,24 +336,24 @@ def autosecure(device, vars_array):
 
 def do_autosecure(devices, os_type, username, password, enable, vars_array):
     # mylist = devices.split(', ')
-    for ip in devices:
-        if os_type == 'ios':
-            os_type = 'cisco_ios'
+    try:
+        for ip in devices:
+            if os_type == 'ios':
+                os_type = 'cisco_ios'
 
-        cisco_device = {
-            'device_type': os_type,
-            'host': ip,
-            'username': username,
-            'password': password,
-            'port': 22,  # optional, default 22
-            'secret': enable,  # this is the enable password
-            'verbose': True  # optional, default False
-        }
+            cisco_device = {
+                'device_type': os_type,
+                'host': ip,
+                'username': username,
+                'password': password,
+                'port': 22,  # optional, default 22
+                'secret': enable,  # this is the enable password
+                'verbose': True  # optional, default False
+            }
         # note that the enable secret and passwords are only sent once, the confirmation is interface-based
         # vars_array = ['1', 'knot setk', 'not set', 'not set 2', 'not set', 'not set 3', '30', '30', '30', 'No', 'not set', 'not set', 'No', 'No']
 
-    try:
-        autosecure(cisco_device, vars_array)
+            autosecure(cisco_device, vars_array)
     except ConnectionRefusedError as err:
         return f"Connection Refused: {err}"
     except TimeoutError as err:

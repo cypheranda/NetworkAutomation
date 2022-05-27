@@ -1,0 +1,12 @@
+---
+- name: Save devices config
+  hosts: "{{ variable_host }}"
+  become: true
+  tasks:
+  - name: save config
+    ios_config:
+      lines:
+        - do wr
+    tags: save_config
+
+# ansible-playbook -i inventory save_config.yaml --tags "save_config" --extra-vars "variable_host=routers"

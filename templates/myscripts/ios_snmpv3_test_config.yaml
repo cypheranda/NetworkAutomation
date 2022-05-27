@@ -1,0 +1,70 @@
+---
+- name: Test configuration for Cisco SNMPv3
+  gather_facts: no
+  hosts: "{{ variable_host }}"
+  connection: network_cli
+
+  tasks:
+    - name: Apply the provided configuration
+      cisco.ios.ios_snmp_server:
+        config:
+          communities:
+          -   acl_v4: testACL
+              name: mergedComm
+              rw: true
+          contact: contact updated using merged
+          engine_id:
+          -   id: AB0C5342FF0F
+              remote:
+                  host: 172.16.0.12
+                  udp_port: 25
+          groups:
+          -   group: mergedGroup
+              version: v3
+              version_option: auth
+          file_transfer:
+                  access_group: test
+                  protocol:
+                  - ftp
+          hosts:
+          -   community_string: mergedComm
+              host: 172.16.2.9
+              informs: true
+              traps:
+              - msdp
+              - stun
+              - pki
+              version: 2c
+          traps:
+              cef:
+                  enable: true
+                  inconsistency: true
+                  peer_fib_state_change: true
+                  peer_state_change: true
+                  resource_failure: true
+              msdp: true
+              ospf:
+                  cisco_specific:
+                      error: true
+                      lsa: true
+                      retransmit: true
+                      state_change:
+                          nssa_trans_change: true
+                          shamlink:
+                              interface: true
+                              neighbor: true
+                  error: true
+                  lsa: true
+                  retransmit: true
+                  state_change: true
+              syslog: true
+              tty: true
+          users:
+          -   acl_v4: '24'
+              group: dev
+              username: userPaul
+              version: v1
+        state: merged
+
+
+# ansible-playbook -i inventory ios_snmpv3_test_config.yaml --extra-vars "variable_host=routers"

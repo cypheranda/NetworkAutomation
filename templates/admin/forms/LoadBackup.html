@@ -1,0 +1,179 @@
+{% extends 'admin/master.html' %}
+{% block body %}
+{{ super() }}
+
+{% if current_user.is_authenticated %}
+
+{% block content %}
+<section class="content-header">
+  <h1 >
+      {{ template_type }} form
+      <br><br><br>
+  </h1>
+</section>
+    <form method="post" style="text-indent: 40px">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" value="" name="defaultCheck" id="defaultCheck" required>
+
+                        <label class="form-check-label" for="defaultCheck">
+                            De rezolvat locatia fisierelor de backup, de vazut unde se creeaza folderul ./backup si modifica pathul in netmiko.scp
+        Please note that the "archive" command should be manually enabled on your target devices
+                            example: R20(config)#archive
+                                     R20(config-archive)#path flash0:
+      </label>
+                  <br><br>
+    </div>
+{#    <div id="" style="overflow:scroll; height:400px;">#}
+{#        <h1>Devices backup</h1>#}
+{#          <div class="form-group row">#}
+{#            <label for="inputInventory" data-live-search="true" class="col-sm-2 col-form-label">Inventory</label>#}
+{#            <div class="col-sm-10">#}
+{#                <select required="required" class="custom-select my-1 mr-sm-2" name="inputInventory" id="inputInventory" value="{{ request.form['inputInventory'] }}" onchange="myFunction()">#}
+{#                    <option value="">Choose...</option>#}
+{#                    {% for inventory in inventories %}#}
+{#                        <option data-id={{ inventory.name }} rel={{ inventory.name }} value={{ inventory.name }}>{{ inventory.name }}</option>#}
+{#                    {% endfor %}#}
+{#                  </select>#}
+{#            </div>#}
+{#          </div>#}
+{#        <div class="form-group row">#}
+{#            <label for="inputDevices" data-live-search="true" class="col-sm-2 col-form-label">Devices</label>#}
+{#            <div class="col-sm-10">#}
+{#                <select required="required" class="custom-select my-1 mr-sm-2" name="inputDevices" id="inputDevices" value="{{ request.form['inputDevices'] }}" style="display:none" onchange="showHiddenSelect2();">#}
+{#                    <option value="">Choose...</option>#}
+{#                    {% for key in elements.keys() %}#}
+{#                        {% for element in elements[key] %}#}
+{#                        <option style="display:none" class={{ key }} data-id={{ element }} rel={{ element }} value={{ element }}>{{ element }}</option>#}
+{#                    {% endfor %}#}
+{#                {% endfor %}#}
+{#                  </select>#}
+{#            </div>#}
+{#          </div>#}
+{#    <div class="form-group row">#}
+{#            <label for="inputSoloDevice" data-live-search="true" class="col-sm-2 col-form-label">Device</label>#}
+{#            <div class="col-sm-10">#}
+{#                <select required="required" class="custom-select my-1 mr-sm-2" name="inputSoloDevice" id="inputSoloDevice" value="{{ request.form['inputSoloDevice'] }}" style="display:none" onchange="showHiddenSelect3();">#}
+{#                    <option value="">Choose...</option>#}
+{#                    {% for key in elements2.keys() %}#}
+{#                        {% for element2 in elements2[key] %}#}
+{#                        <option style="display:none" class={{ key }} value={{ element2 }}>{{ element2 }}</option>#}
+{#                    {% endfor %}#}
+{#                {% endfor %}#}
+{#                  </select>#}
+{#            </div>#}
+{#          </div>#}
+{#    </div>#}
+<br><br>
+    <div class="form-group row">
+            <label for="inputUsername" class="col-sm-2 col-form-label">Username</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" name="inputUsername" placeholder="Username" value="{{ request.form['inputUsername'] }}"></input>
+            </div>
+          </div>
+        <div class="form-group row">
+            <label for="inputPassword" class="col-sm-2 col-form-label">Password</label>
+            <div class="col-sm-10">
+              <input type="password" class="form-control" name="inputPassword" placeholder="Password" value="{{ request.form['inputPassword'] }}"></input>
+            </div>
+          </div>
+            <div class="form-group row">
+            <label for="inputEnablePassword" class="col-sm-2 col-form-label">Enable password</label>
+            <div class="col-sm-10">
+              <input type="password" class="form-control" name="inputEnablePassword" placeholder="Enable password" value="{{ request.form['inputEnablePassword'] }}"></input>
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="inputInventory" data-live-search="true" class="col-sm-2 col-form-label">Inventory</label>
+            <div class="col-sm-10">
+                <select required="required" class="custom-select my-1 mr-sm-2" name="inputInventory" id="inputInventory" value="{{ request.form['inputInventory'] }}" onchange="myFunction()">
+                    <option value="">Choose...</option>
+                    {% for inventory in inventories %}
+                        <option data-id={{ inventory.name }} rel={{ inventory.name }} value={{ inventory.name }}>{{ inventory.name }}</option>
+                    {% endfor %}
+                  </select>
+            </div>
+          </div>
+        <div class="form-group row">
+            <label for="inputDevices" data-live-search="true" class="col-sm-2 col-form-label">Devices</label>
+            <div class="col-sm-10">
+                <select required="required" class="custom-select my-1 mr-sm-2" name="inputDevices" id="inputDevices" value="{{ request.form['inputDevices'] }}" style="display:none" onchange="myFunction();">
+                    <option value="">Choose...</option>
+                    {% for key in elements.keys() %}
+                        {% for element in elements[key] %}
+                        <option style="display:none" class={{ key }} value={{ element }}>{{ element }}</option>
+                    {% endfor %}
+                {% endfor %}
+                  </select>
+            </div>
+          </div>
+
+              <div class="form-check">
+      <input class="form-check-input" type="checkbox" value="" name="defaultCheck" id="defaultCheck" required>
+
+                        <label class="form-check-label" for="defaultCheck">
+        Please note that the current device configuration will be written to startup config
+      </label>
+                  <br><br>
+    </div>
+                      <div class="form-group row">
+            <div class="col-sm-10">
+              <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+          </div>
+    </form>
+{% endblock %}
+  {% endif %}
+    <script>
+    $(document).ready(function(){
+    var $cat = $('select[name=inputInventory]'),
+    $items = $('select[name=inputDevices]');
+
+    $cat.change(function(){
+
+        var $this = $(this).find(':selected'),
+        rel = $this.attr('rel');
+
+        // Hide all
+        $items.find("option").hide();
+
+        // Find all matching accessories
+        // Show all the correct accesories
+        // Select the first accesory
+        $set = $items.find('option.' + rel);
+        $set.show().first().prop('selected', true);
+
+    });
+});
+
+    $(document).ready(function(){
+    var $cat = $('select[name=inputDevices]'),
+    $items = $('select[name=inputSoloDevice]');
+
+    $cat.change(function(){
+
+        var $this = $(this).find(':selected'),
+        rel = $this.attr('rel');
+
+        // Hide all
+        $items.find("option").hide();
+
+        // Find all matching accessories
+        // Show all the correct accesories
+        // Select the first accesory
+        $set = $items.find('option.' + rel);
+        $set.show().first().prop('selected', true);
+
+    });
+});
+
+function myFunction() {
+    document.getElementById('inputDevices').style.display='block';
+}
+
+function showHiddenSelect2() {
+    document.getElementById('inputSoloDevice').style.display='block';
+}
+    </script>
+
+  {% endblock body %}

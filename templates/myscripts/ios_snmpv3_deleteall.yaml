@@ -1,0 +1,12 @@
+---
+- name: Test configuration for Cisco SNMPv3
+  gather_facts: no
+  hosts: "{{ variable_host }}"
+  connection: network_cli
+
+  tasks:
+    - name: Remove all existing configuration
+      cisco.ios.ios_snmp_server:
+        state: deleted
+
+# ansible-playbook -i inventory ios_snmpv3_deleteall.yaml --extra-vars "variable_host=routers"

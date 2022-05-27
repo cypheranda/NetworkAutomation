@@ -1,0 +1,11 @@
+interface interface_number
+ip ospf cost cost_value
+ip ospf retransmit-interval retransmit_seconds
+ip ospf transmit-delay transmit_seconds
+ip ospf priority number_value
+ip ospf hello-interval hello_seconds
+ip ospf dead-interval dead_seconds
+ip ospf authentication-key 0 auth_key
+ip ospf message-digest-key key_id md5 0 md5_key
+ip ospf authentication message_digest_or_null
+end

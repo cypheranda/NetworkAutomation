@@ -119,4 +119,4 @@ def do_secureboot(devices, os_type, username, password, enable, config_type):
         CONFIG_PATH = os.path.join(ROOT_DIR, path)
         os.remove(path)
 
-        return "Successful configuration!"
+    return "Successful configuration!"

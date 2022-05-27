@@ -1,0 +1,34 @@
+---
+- name: Configure console line
+  hosts: "{{ variable_host }}"
+  become: true
+  tasks:
+  - name: setup access list permit
+    cisco.ios.ios_config:
+      lines:
+        - access-list {{ access_list_number }} permit {{ item }}
+    with_items:
+      - "{{ source_permit }}"
+    tags: access_list_permit
+  - name: setup access list deny
+    cisco.ios.ios_config:
+      lines:
+        - access-list {{ access_list_number }} deny {{ item }} # 0.0.0.0 daca utilizatorul nu pune nimic, sau any
+    with_items:
+      - "{{ source_deny }}"
+    tags: access_list_deny
+  - name: controlling inbound access to console vrf_also
+    cisco.ios.ios_config:
+      parents: line console 0
+      lines:
+        - access-class {{ access_list_number }} in vrf-also
+        - exit
+    tags: inbound_console_access_vrf_also
+  - name: controlling outbound access to console vrf_also
+    cisco.ios.ios_config:
+      parents: line console 0
+      lines:
+        - access-class {{ access_list_number }} out vrf-also
+        - exit
+    tags: outbound_console_access_vrf_also
+

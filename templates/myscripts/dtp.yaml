@@ -1,0 +1,43 @@
+# on switches interfaces
+---
+- name: Configuring Cisco IOS DTP
+  hosts: "{{ variable_host }}"
+  gather_facts: no
+  connection: network_cli
+
+  tasks:
+    - name: mode access
+      ios_config:
+        lines:
+          - switchport mode access
+          - switchport access vlan {{ vlan_id }}
+        parents: interface {{ interface_number }}
+      tags: sw_mode_access
+    - name: mode trunk
+      ios_config:
+        lines:
+          - switchport mode trunk
+        parents: interface {{ interface_number }}
+      tags: sw_mode_trunk
+    - name: DTP dynamic auto
+      ios_config:
+        lines:
+          - switchport mode dynamic auto
+        parents: interface {{ interface_number }}
+      tags: sw_mode_dynamic_auto
+    - name: DTP dynamic desirable
+      ios_config:
+        lines:
+          - switchport mode dynamic desirable
+        parents: interface {{ interface_number }}
+      tags: sw_mode_dynamic_desirable
+    - name: disable DTP
+      ios_config:
+        lines:
+          - switchport nonegociate
+        parents: interface {{ interface_number }}
+      tags: sw_disable_dtp
+...
+# Command to run:
+# ansible-playbook -i inventory
+

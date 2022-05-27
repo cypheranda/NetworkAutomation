@@ -1,0 +1,34 @@
+---
+- name: Configure vty lines
+  hosts: "{{ variable_host }}"
+  become: true
+  tasks:
+  - name: setup access-list permit
+    cisco.ios.ios_config:
+      lines:
+        - access-list {{ access_list_number }} permit {{ item }}
+    with_items:
+      - "{{ source_permit }}"
+    tags: access_list_permit
+  - name: setup access-list deny
+    cisco.ios.ios_config:
+      lines:
+        - access-list {{ access_list_number }} deny {{ item }} # 0.0.0.0 daca utilizatorul nu pune nimic, sau any
+    with_items:
+      - "{{ source_deny }}"
+    tags: access_list_deny
+  - name: controlling inbound access to a vty vrf-also
+    cisco.ios.ios_config:
+      parents: "{{ vty_lines }}"
+      lines:
+        - access-class {{ access_list_number }} in vrf-also
+        - exit
+    tags: inbound_vty_access_vrf_also
+  - name: controlling outbound access to a vty vrf_also
+    cisco.ios.ios_config:
+      parents: "{{ vty_lines }}"
+      lines:
+        - access-class {{ access_list_number }} out vrf-also
+        - exit
+    tags: outbound_vty_access_vrf_also
+

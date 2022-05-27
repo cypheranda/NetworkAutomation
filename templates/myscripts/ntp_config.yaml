@@ -1,0 +1,27 @@
+---
+- name: NTP configuration
+  gather_facts: no
+  hosts: "{{ variable_host }}"
+  connection: network_cli
+
+  tasks:
+    - name: server time configuration
+      ios_command:
+        commands:
+          - clock set {{ time }} {{ month }} {{ day }} {{ year }} # time format: 10:10:00 dec 17 2017
+      tags: ntp_server
+    - name: ntp server configuration
+      ios_config:
+        lines:
+          - ntp master 1
+          - do wr
+      tags: ntp_server
+    - name: ntp client configuration
+      ios_config:
+        lines:
+          - ntp server {{ server_ip }} # ip address of server, make sure it is pingable
+      tags: ntp_client
+
+...
+
+# the config only works after some time, like 5 mins maybe more

@@ -1,0 +1,5 @@
+interface type number
+ip ospf network point-to-multipoint non-broadcast
+exit
+router ospf process_id
+neighbor ip_address cost cost_value

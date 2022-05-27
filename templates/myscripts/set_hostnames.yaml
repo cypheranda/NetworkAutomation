@@ -1,6 +1,6 @@
 ---
 - name: Configuring Cisco IOS Hostnames
-  hosts: switches
+  hosts: "{{ variable_host }}"
   gather_facts: no
   connection: network_cli
 
@@ -10,7 +10,8 @@
          lines: hostname {{ inventory_hostname }}
     - name: Printing at the console
       debug: var=output
+
 ...
 # Command to run:
-# ansible-playbook -i inventory ios_hostname_config.yaml
+# ansible-playbook -i inventory set_hostnames.yaml --extra-vars "variable_host=routers" -vvv
 

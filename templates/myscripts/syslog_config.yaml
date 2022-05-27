@@ -1,0 +1,30 @@
+# i already found an appliance that has syslog working
+# intra in Toolbox, cd /var/log/, more syslog
+# in gns3 ne tb un toolbox si un webterm, setam dhcp la ambele si in webterm scrie adresa ip a toolboxului
+
+---
+- name: Configure syslog for router
+  hosts: "{{ variable_host }}"
+  become: true
+  tasks:
+  - name: set syslog server
+    ios_config:
+      lines:
+        - service timestamps {{ timestamps_type }} datetime {{ datetime_choice }}
+        - logging {{ syslog_server }}
+        - logging on
+    tags: set_syslog_server
+
+  - name: set facility
+    ios_config:
+      lines:
+        - logging facility {{ facility_type }}
+    tags: set_facility
+
+  - name: set trap level
+    ios_config:
+      lines:
+        - logging trap {{ trap_level }}
+    tags: set_trap_level
+
+# ansible-playbook -i inventory syslog_config.yaml --tags "set_syslog_server,set_facility,set_trap_level" --extra-vars "variable_host=routers timestamps_type='log' datetime_choice='localtime' syslog_server='192.168.122.56' facility_type='local0' trap_level='informational'"

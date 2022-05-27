@@ -1,0 +1,4 @@
+router ospf process_id
+area area_id nssa translate type7 always
+area area_id nssa translate type7 suppress-fa
+end

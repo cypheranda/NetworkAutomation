@@ -1,0 +1,11 @@
+---
+- name: SNMPv3 config
+  hosts: "{{ variable_host }}"
+  gather_facts: false
+  tasks:
+    - name: modify SNMPv3 config
+      cisco.ios.ios_snmp_server:
+        state: "{{ state }}" #merged/replaced/overridden/deleted/rendered
+        config: "{{ snmpv3 }}" #se ia automat din host_vars
+
+# ansible-playbook -i inventory ios_snmpv3_config.yaml --extra-vars "state='deleted'" -vvv

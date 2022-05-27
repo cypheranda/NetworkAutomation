@@ -11,6 +11,7 @@ def get_device_data(inventory):
     fin.close()
     return elements
 
+
 # elements = get_device_data("inventory")
 # print("STARTIN")
 # for element in elements:

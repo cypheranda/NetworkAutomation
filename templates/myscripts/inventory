@@ -1,13 +1,8 @@
-
 [switches]
-Sw1 ansible_host=192.168.204.17 src_file=Sw1_config.2022-01-11@09:11:55 dest_file=Sw1:/Sw1.config
+Sw1 ansible_host=192.168.204.17 src_file=running-config dest_file=Sw1/Sw1.config
 
 [routers]
-R4 ansible_host=192.168.204.19
-
-[compute_routers]
-R2 ansible_host=10.0.0.2
-R3 ansible_host=10.0.0.3
+R1 ansible_host=192.168.204.136 src_file=running-config dest_file=R20.appconfiggggg
 
 [switches_domain_name]
 Sw2 switch_domain_name=networkautomation.com
@@ -15,17 +10,11 @@ Sw2 switch_domain_name=networkautomation.com
 [routers:vars]
 ansible_network_os=ios
 ansible_user=admin
-ansible_password=cisco
-ansible_ssh_pass=cisco
+ansible_password=$5$rounds=535000$3URf5UWBITHulyKu$ddJkShY/.YSqTU4EbtkrmjLgqZXqCt7eAjo.HnYkM81
+ansible_ssh_pass=$5$rounds=535000$3URf5UWBITHulyKu$ddJkShY/.YSqTU4EbtkrmjLgqZXqCt7eAjo.HnYkM81
 ansible_become=yes
 ansible_become_method=enable
-ansible_become_password=parola
+ansible_become_password=$5$rounds=535000$n.tAjjeUnFxImbEf$HBmkLhjuFDxFVCiYtRXX1hOQF1q2FrjsU5MvaQGmCl0
 ansible_connection=network_cli
 ansible_python_interpreter=/usr/bin/python3
-switch_domain_name=networkautomation.com
 
-[compute_routers:vars]
-ansible_network_os=ios
-
-[to_remove_users]
-testing

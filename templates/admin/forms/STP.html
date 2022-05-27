@@ -1,0 +1,974 @@
+{% extends 'admin/master.html' %}
+{% block body %}
+{{ super() }}
+
+{% if current_user.is_authenticated %}
+
+{% block content %}
+<section class="content-header">
+  <h1 >
+      {{ template_type }} form
+      <br><br><br>
+  </h1>
+</section>
+    <form method="post" style="text-indent: 40px">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <div class="form-group row">
+            <label for="inputUsername" class="col-sm-2 col-form-label">Username</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" name="inputUsername" placeholder="Username" value="{{ request.form['inputUsername'] }}"></input>
+            </div>
+          </div>
+        <div class="form-group row">
+            <label for="inputPassword" class="col-sm-2 col-form-label">Password</label>
+            <div class="col-sm-10">
+              <input type="password" class="form-control" name="inputPassword" placeholder="Password" value="{{ request.form['inputPassword'] }}"></input>
+            </div>
+          </div>
+            <div class="form-group row">
+            <label for="inputEnablePassword" class="col-sm-2 col-form-label">Enable password</label>
+            <div class="col-sm-10">
+              <input type="password" class="form-control" name="inputEnablePassword" placeholder="Enable password" value="{{ request.form['inputEnablePassword'] }}"></input>
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="inputInventory" data-live-search="true" class="col-sm-2 col-form-label">Inventory</label>
+            <div class="col-sm-10">
+                <select required="required" class="custom-select my-1 mr-sm-2" name="inputInventory" id="inputInventory" value="{{ request.form['inputInventory'] }}" onchange="myFunction()">
+                    <option value="">Choose...</option>
+                    {% for inventory in inventories %}
+                        <option data-id={{ inventory.name }} rel={{ inventory.name }} value={{ inventory.name }}>{{ inventory.name }}</option>
+                    {% endfor %}
+                  </select>
+            </div>
+          </div>
+        <div class="form-group row">
+            <label for="inputDevices" data-live-search="true" class="col-sm-2 col-form-label">Devices</label>
+            <div class="col-sm-10">
+                <select required="required" class="custom-select my-1 mr-sm-2" name="inputDevices" id="inputDevices" value="{{ request.form['inputDevices'] }}" style="display:none" onchange="showHiddenSelect2();">
+                    <option value="">Choose...</option>
+                    {% for key in elements.keys() %}
+                        {% for element in elements[key] %}
+                        <option style="display:none" class={{ key }} value={{ element }}>{{ element }}</option>
+                    {% endfor %}
+                {% endfor %}
+                  </select>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputType" data-live-search="true" class="col-sm-2 col-form-label">Switch or interface?</label>
+            <div class="col-sm-10">
+                <select required="required" class="custom-select my-1 mr-sm-2" name="inputType" id="inputType" value="{{ request.form['inputType'] }}">
+                    <option value="">Choose...</option>
+                        <option data-id="Switch" rel="Switch" value="switch_stp">Switch</option>
+                    <option data-id="Interface" rel="Interface" value="interface_stp">Interface</option>
+                  </select>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputInterface" class="col-sm-2 col-form-label">Interface</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" name="inputInterface" id="inputInterface" placeholder="To be configured interface" value="{{ request.form['inputInterface'] }}" readonly="true"></input>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputFeature" data-live-search="true" class="col-sm-2 col-form-label">Feature</label>
+            <div class="col-sm-10">
+                <select required="required" class="custom-select my-1 mr-sm-2" name="inputFeature" id="inputFeature" value="{{ request.form['inputFeature'] }}" onchange="myFunction()">
+                    <option class="Switch Interface" value="">Choose...</option>
+                    <option class="Switch" value="backbonefast">Enable BackboneFast Feature</option>
+                    <option class="Switch" value="bridge">STP Bridge Assurance parameters</option>
+                    <option class="Switch" value="etherchannel">Spanning tree etherchannel specific configuration</option>
+                    <option class="Switch" value="extend">Spanning Tree 802.1t extensions</option>
+                    <option class="Switch" value="logging">Enable Spanning tree logging</option>
+                    <option class="Switch" value="loopguard">Spanning tree loopguard options</option>
+                    <option class="Switch" value="mode">Spanning tree operating mode</option>
+                    <option class="Switch" value="mst">Multiple spanning tree configuration</option>
+                    <option class="Switch" value="pathcost">Spanning tree pathcost options</option>
+                    <option class="Switch" value="portfast">Spanning tree portfast options</option>
+                    <option class="Switch" value="transmit">STP transmit parameters</option>
+                    <option class="Switch" value="uplinkfast">Enable UplinkFast Feature</option>
+                    <option class="Switch" value="vlan">VLAN Switch Spanning Tree</option>
+
+                    <option class="Interface" value="bpdufilter2">Don't send or receive BPDUs on this interface</option>
+                    <option class="Interface" value="bpduguard2">Don't accept BPDUs on this interface</option>
+                    <option class="Interface" value="cost2">Change an interface's spanning tree port path cost</option>
+                    <option class="Interface" value="guard2">Change an interface's spanning tree guard mode</option>
+                    <option class="Interface" value="link-type2">Specify a link type for spanning tree protocol use</option>
+                    <option class="Interface" value="mst2">Multiple spanning tree</option>
+                    <option class="Interface" value="port-priority2">Change an interface's spanning tree port priority</option>
+                    <option class="Interface" value="portfast2">Portfast options for the interface</option>
+                    <option class="Interface" value="vlan2">VLAN Switch Spanning Tree</option>
+                  </select>
+            </div>
+          </div>
+        <div class="form-group row">
+            <label for="inputVLAN" class="col-sm-2 col-form-label">Vlan range</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" name="inputVLAN" id="inputVLAN" placeholder="example: 1,3-5,7,9-11" value="{{ request.form['inputVLAN'] }}" readonly="true"></input>
+            </div>
+    </div>
+    <div class="form-group row">
+            <label for="inputMode" data-live-search="true" class="col-sm-2 col-form-label">Mode</label>
+            <div class="col-sm-10">
+                <select required="required" disabled class="custom-select my-1 mr-sm-2" name="inputMode" id="inputMode" value="{{ request.form['inputMode'] }}">
+                    <option value="">Choose...</option>
+                    <option rel="mst" value="mst">Multiple spanning tree mode</option>
+                    <option rel="pvst" value="pvst">Per-Vlan spanning tree mode</option>
+                    <option rel="rapid-pvst" value="rapid-pvst">Per-Vlan rapid spanning tree mode</option>
+                  </select>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputConfigurationOption" class="col-sm-2 col-form-label">Enter MST configuration submode</label>
+            <div class="col-sm-10">
+              <input type="radio" required name="inputConfigurationOption" id="inputConfigurationOption1" disabled value="Yes config" onclick="handleClick(this);"> Yes </input>
+                <input type="radio" name="inputConfigurationOption" id="inputConfigurationOption2" disabled value="No config" onclick="handleClick(this);"> No </input>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputConfigName" class="col-sm-2 col-form-label">Set configuration name</label>
+            <div class="col-sm-10">
+              <input type="text" required class="form-control" name="inputConfigName" id="inputConfigName" placeholder="Enter your MST configuration name" value="{{ request.form['inputConfigName'] }}" readonly="true"></input>
+            </div>
+    </div>
+    <div class="form-group row">
+            <label for="inputForwardOption" class="col-sm-2 col-form-label">Set the forward delay for the spanning tree</label>
+            <div class="col-sm-10">
+              <input type="radio" required name="inputForwardOption" id="inputForwardOption1" value="Yes forward" disabled onclick="handleClick(this);"> Yes </input>
+                <input type="radio" name="inputForwardOption" id="inputForwardOption2" value="No forward" disabled onclick="handleClick(this);"> No </input>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputForwardTime" class="col-sm-2 col-form-label">Number of seconds for the forward delay timer</label>
+            <div class="col-sm-10">
+              <input type="number" required class="form-control" name="inputForwardTime" id="inputForwardTime" min="4" max="30" placeholder="4-30" value="{{ request.form['inputForwardTime'] }}" readonly="true"></input>
+            </div>
+    </div>
+    <div class="form-group row">
+            <label for="inputHelloOption" class="col-sm-2 col-form-label">Set the hello interval for the spanning tree</label>
+            <div class="col-sm-10">
+              <input type="radio" required name="inputHelloOption" id="inputHelloOption1" value="Yes hello" disabled onclick="handleClick(this);"> Yes </input>
+                <input type="radio" name="inputHelloOption" id="inputHelloOption2" value="No hello" disabled onclick="handleClick(this);"> No </input>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputHelloTime" class="col-sm-2 col-form-label">Number of seconds between generation of config BPDUs</label>
+            <div class="col-sm-10">
+              <input type="number" required class="form-control" name="inputHelloTime" id="inputHelloTime" min="1" max="10" placeholder="1-10" value="{{ request.form['inputHelloTime'] }}" readonly="true"></input>
+            </div>
+    </div>
+    <div class="form-group row">
+            <label for="inputMaxAgeOption" class="col-sm-2 col-form-label">Set the max age interval for the spanning tree</label>
+            <div class="col-sm-10">
+              <input type="radio" required name="inputMaxAgeOption" id="inputMaxAgeOption1" value="Yes maxage" disabled onclick="handleClick(this);"> Yes </input>
+                <input type="radio" name="inputMaxAgeOption" id="inputMaxAgeOption2" value="No maxage" disabled onclick="handleClick(this);"> No </input>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputMaxAge" class="col-sm-2 col-form-label">Maximum number of seconds the information in a BPDU is valid</label>
+            <div class="col-sm-10">
+              <input type="number" required class="form-control" name="inputMaxAge" id="inputMaxAge" min="6" max="40" placeholder="6-40" value="{{ request.form['inputMaxAge'] }}" readonly="true"></input>
+            </div>
+    </div>
+    <div class="form-group row">
+            <label for="inputMaxHopsOption" class="col-sm-2 col-form-label">Set the max hops value for the spanning tree</label>
+            <div class="col-sm-10">
+              <input type="radio" required name="inputMaxHopsOption" id="inputMaxHopsOption1" value="Yes maxhops" disabled onclick="handleClick(this);"> Yes </input>
+                <input type="radio" name="inputMaxHopsOption" id="inputMaxHopsOption2" value="No maxhops" disabled onclick="handleClick(this);"> No </input>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputMaxHops" class="col-sm-2 col-form-label">Maximum number of hops a BPDU is valid</label>
+            <div class="col-sm-10">
+              <input type="number" required class="form-control" name="inputMaxHops" id="inputMaxHops" min="1" max="255" placeholder="1-255" value="{{ request.form['inputMaxHops'] }}" readonly="true"></input>
+            </div>
+    </div>
+
+    <div class="form-group row">
+            <label for="inputPathcost" class="col-sm-2 col-form-label">Method to calculate default port path cost</label>
+            <div class="col-sm-10">
+              <input type="radio" required name="inputPathcost" id="long" value="long" disabled onclick="handleClick(this);"> Use 32 bit based values for default port path costs </input>
+                <input type="radio" name="inputPathcost" id="short" value="short" disabled onclick="handleClick(this);"> Use 16 bit based values for default port path costs </input>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputPortfast" data-live-search="true" class="col-sm-2 col-form-label">Spanning tree portfast options</label>
+            <div class="col-sm-10">
+                <select required="required" disabled class="custom-select my-1 mr-sm-2" name="inputPortfast" id="inputPortfast" value="{{ request.form['inputPortfast'] }}">
+                    <option value="">Choose...</option>
+                    <option value="edge bpdufilter">Enable portfast edge bpdu filter on this switch</option>
+                    <option value="edge bpduguard">Enable portfast edge bpdu guard on this switch</option>
+                    <option value="edge default">Enable portfast edge by default on all access ports</option>
+                    <option value="network">Spanning tree portfast network options</option>
+                    <option value="normal">Spanning tree portfast normal options</option>
+                </select>
+            </div>
+          </div>
+
+    <div class="form-group row">
+            <label for="inputTranmsit" class="col-sm-2 col-form-label">Set the txholdcount parameter for RSTP and MST</label>
+            <div class="col-sm-10">
+              <input type="number" required class="form-control" name="inputTranmsit" id="inputTranmsit" min="1" max="20" placeholder="1-20" value="{{ request.form['inputTranmsit'] }}" readonly="true"></input>
+            </div>
+    </div>
+    <div class="form-group row">
+            <label for="inputUplinkfast" class="col-sm-2 col-form-label">Maximum number of update packets per second</label>
+            <div class="col-sm-10">
+              <input type="number" required class="form-control" name="inputUplinkfast" id="inputUplinkfast" min="0" max="32000" placeholder="0-32000" value="{{ request.form['inputUplinkfast'] }}" readonly="true"></input>
+            </div>
+    </div>
+    <div class="form-group row">
+            <label for="inputPriorityOption" class="col-sm-2 col-form-label">Set the bridge priority for the spanning tree</label>
+            <div class="col-sm-10">
+              <input type="radio" required name="inputPriorityOption" id="inputPriorityOption1" value="Yes priority" disabled onclick="handleClick(this);"> Yes </input>
+                <input type="radio" name="inputPriorityOption" id="inputPriorityOption2" value="No priority" disabled onclick="handleClick(this);"> No </input>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputPriority" class="col-sm-2 col-form-label">Bridge priority in increments of 4096</label>
+            <div class="col-sm-10">
+              <input type="number" required class="form-control" name="inputPriority" id="inputPriority" min="0" max="61440" step="4096" placeholder="0-61440" value="{{ request.form['inputPriority'] }}" readonly="true"></input>
+            </div>
+    </div>
+    <div class="form-group row">
+            <label for="inputRootOption" class="col-sm-2 col-form-label"> Configure switch as root</label>
+            <div class="col-sm-10">
+              <input type="radio" required name="inputRootOption" id="inputRootOption1" value="Yes root" disabled onclick="handleClick(this);"> Yes </input>
+                <input type="radio" name="inputRootOption" id="inputRootOption2" value="No root" disabled onclick="handleClick(this);"> No </input>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputRoot" data-live-search="true" class="col-sm-2 col-form-label">Root</label>
+            <div class="col-sm-10">
+                <select class="custom-select my-1 mr-sm-2" disabled required name="inputRoot" id="inputRoot" value="{{ request.form['inputRoot'] }}">
+                    <option value="">Choose...</option>
+                    <option value="primary">Configure this switch as primary root for this spanning tree</option>
+                    <option value="secondary">Configure switch as secondary root</option>
+                </select>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputBPDUFilter" data-live-search="true" class="col-sm-2 col-form-label">Enable/Disable BPDU filtering for this interface</label>
+            <div class="col-sm-10">
+                <select required="required" disabled class="custom-select my-1 mr-sm-2" name="inputBPDUFilter" id="inputBPDUFilter" value="{{ request.form['inputBPDUFilter'] }}">
+                    <option value="">Choose...</option>
+                        <option value="enable">Enable BPDU filtering for this interface</option>
+                    <option value="disable">Disable BPDU filtering for this interface</option>
+                  </select>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputBPDUGuard" data-live-search="true" class="col-sm-2 col-form-label">Enable/Disable BPDU guard for this interface</label>
+            <div class="col-sm-10">
+                <select required="required" disabled class="custom-select my-1 mr-sm-2" name="inputBPDUGuard" id="inputBPDUGuard" value="{{ request.form['inputBPDUGuard'] }}">
+                    <option value="">Choose...</option>
+                        <option value="enable">Enable BPDU guard for this interface</option>
+                    <option value="disable">Disable BPDU guard for this interface</option>
+                  </select>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputCost" class="col-sm-2 col-form-label">Port path cost</label>
+            <div class="col-sm-10">
+              <input type="number" required class="form-control" name="inputCost" id="inputCost" min="1" max="200000000" placeholder="1-200000000" value="{{ request.form['inputCost'] }}" readonly="true"></input>
+            </div>
+    </div>
+    <div class="form-group row">
+            <label for="inputGuard" data-live-search="true" class="col-sm-2 col-form-label">Change an interface's spanning tree guard mode</label>
+            <div class="col-sm-10">
+                <select required="required" disabled class="custom-select my-1 mr-sm-2" name="inputGuard" id="inputGuard" value="{{ request.form['inputGuard'] }}">
+                    <option value="">Choose...</option>
+                        <option value="loop">Set guard mode to loop guard on interface</option>
+                    <option value="none">Set guard mode to none</option>
+                    <option value="root">Set guard mode to root guard on interface</option>
+                  </select>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputLinktype" data-live-search="true" class="col-sm-2 col-form-label">Specify a link type for spanning tree protocol use</label>
+            <div class="col-sm-10">
+                <select required="required" disabled class="custom-select my-1 mr-sm-2" name="inputLinktype" id="inputLinktype" value="{{ request.form['inputLinktype'] }}">
+                    <option value="">Choose...</option>
+                        <option value="point-to-point">Consider the interface as point-to-point</option>
+                    <option value="shared">Consider the interface as shared</option>
+                  </select>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputPortpriority" class="col-sm-2 col-form-label">Port priority in increments of 32</label>
+            <div class="col-sm-10">
+              <input type="number" required class="form-control" name="inputPortpriority" id="inputPortpriority" min="0" max="224" step="32" placeholder="0-224" value="{{ request.form['inputPortpriority'] }}" readonly="true"></input>
+            </div>
+    </div>
+    <div class="form-group row">
+            <label for="inputInterfacePortfast" data-live-search="true" class="col-sm-2 col-form-label">Portfast options for the interface</label>
+            <div class="col-sm-10">
+                <select required="required" disabled class="custom-select my-1 mr-sm-2" name="inputInterfacePortfast" id="inputInterfacePortfast" value="{{ request.form['inputInterfacePortfast'] }}">
+                    <option value="">Choose...</option>
+                        <option value="disable">Disable portfast for this interface</option>
+                    <option value="edge">Enable portfast edge on the interface</option>
+                    <option value="edge trunk">Enable portfast edge on the interface even in trunk mode</option>
+                    <option value="network">Enable portfast network on the interface</option>
+                </select>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputInterfaceMST" data-live-search="true" class="col-sm-2 col-form-label">Multiple spanning tree</label>
+            <div class="col-sm-10">
+                <select required="required" disabled class="custom-select my-1 mr-sm-2" name="inputInterfaceMST" id="inputInterfaceMST" value="{{ request.form['inputInterfaceMST'] }}">
+                    <option value="">Choose...</option>
+                        <option value="instance cost">Change the interface spanning tree path cost for an instance</option>
+                    <option value="instance port-priority">Change the spanning tree port priority for an instance</option>
+                    <option value="pre-standard">Force pre-standard MST BPDU transmission on port</option>
+                    <option value="simulate pvst">Enable PVST simulation on the port</option>
+                    <option value="simulate pvst disable">Disable PVST Simulation on the port</option>
+                </select>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputIntMST" class="col-sm-2 col-form-label">MST instance list</label>
+            <div class="col-sm-10">
+              <input type="text" required class="form-control" name="inputIntMST" id="inputIntMST" placeholder="example 0,2-4,6,8-12" value="{{ request.form['inputIntMST'] }}" readonly="true"></input>
+            </div>
+    </div>
+    <div class="form-group row">
+            <label for="inputIntMstCost" class="col-sm-2 col-form-label">Port path cost</label>
+            <div class="col-sm-10">
+              <input type="number" required class="form-control" name="inputIntMstCost" id="inputIntMstCost" min="1" max="200000000" step="32" placeholder="1-200000000" value="{{ request.form['inputIntMstCost'] }}" readonly="true"></input>
+            </div>
+    </div>
+    <div class="form-group row">
+            <label for="inputIntMSTPortpriority" class="col-sm-2 col-form-label">Port priority in increments of 32</label>
+            <div class="col-sm-10">
+              <input type="number" required class="form-control" name="inputIntMSTPortpriority" id="inputIntMSTPortpriority" min="0" max="224" step="32" placeholder="0-224" value="{{ request.form['inputIntMSTPortpriority'] }}" readonly="true"></input>
+            </div>
+    </div>
+
+              <div class="form-check">
+      <input class="form-check-input" type="checkbox" value="" name="defaultCheck" id="defaultCheck" required>
+      <label class="form-check-label" for="defaultCheck">
+        Please note that this configuration is only for switches
+      </label>
+      <br><br>
+    </div>
+                      <div class="form-group row">
+            <div class="col-sm-10">
+              <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+          </div>
+    </form>
+{% endblock %}
+  {% endif %}
+    <script>
+    $(document).ready(function(){
+    var $cat = $('select[name=inputInventory]'),
+    $items = $('select[name=inputDevices]');
+
+    $cat.change(function(){
+
+        var $this = $(this).find(':selected'),
+        rel = $this.attr('rel');
+
+        // Hide all
+        $items.find("option").hide();
+
+        // Find all matching accessories
+        // Show all the correct accesories
+        // Select the first accesory
+        $set = $items.find('option.' + rel);
+        $set.show().first().prop('selected', true);
+
+    });
+});
+
+    $(document).ready(function(){
+    var $cat = $('select[name=inputType]'),
+    $items = $('select[name=inputFeature]');
+
+    $cat.change(function(){
+
+        var $this = $(this).find(':selected'),
+        rel = $this.attr('rel');
+
+        // Hide all
+        $items.find("option").hide();
+
+        // Find all matching accessories
+        // Show all the correct accesories
+        // Select the first accesory
+        $set = $items.find('option.' + rel);
+        $set.show().first().prop('selected', true);
+
+    });
+});
+
+function myFunction() {
+    document.getElementById('inputDevices').style.display='block';
+}
+
+
+document.getElementById('inputType').addEventListener('change', function() {
+            if (this.value == 'switch_stp') {
+                document.getElementById('inputInterface').readOnly = true;
+        }
+            else if (this.value == 'interface_stp') {
+                document.getElementById('inputInterface').readOnly = false;
+        }
+            })
+
+    document.getElementById('inputFeature').addEventListener('change', function() {
+            if (this.value == 'backbonefast' || this.value == 'bridge' || this.value == 'etherchannel' || this.value == 'extend' || this.value == 'logging' || this.value == 'loopguard') {
+                document.getElementById('inputVLAN').readOnly = true;
+                document.getElementById('inputMode').disabled = true;
+                document.getElementById('inputConfigurationOption1').disabled = true;
+                document.getElementById('inputConfigurationOption2').disabled = true;
+                document.getElementById('inputConfigName').readOnly = true;
+                document.getElementById('inputForwardOption1').disabled = true;
+                document.getElementById('inputForwardOption2').disabled = true;
+                document.getElementById('inputForwardTime').readOnly = true;
+                document.getElementById('inputHelloOption1').disabled = true;
+                document.getElementById('inputHelloOption2').disabled = true;
+                document.getElementById('inputHelloTime').readOnly = true;
+                document.getElementById('inputMaxAgeOption1').disabled = true;
+                document.getElementById('inputMaxAgeOption2').disabled = true;
+                document.getElementById('inputMaxAge').readOnly = true;
+                document.getElementById('inputMaxHopsOption1').disabled = true;
+                document.getElementById('inputMaxHopsOption2').disabled = true;
+                document.getElementById('inputMaxHops').readOnly = true;
+                document.getElementById('long').disabled = true;
+                document.getElementById('short').disabled = true;
+                document.getElementById('inputPortfast').disabled = true;
+                document.getElementById('inputTranmsit').readOnly = true;
+                document.getElementById('inputUplinkfast').readOnly = true;
+                document.getElementById('inputPriorityOption1').disabled = true;
+                document.getElementById('inputPriorityOption2').disabled = true;
+                document.getElementById('inputPriority').readOnly = true;
+                document.getElementById('inputRootOption1').disabled = true;
+                document.getElementById('inputRootOption2').disabled = true;
+                document.getElementById('inputRoot').disabled = true;
+                document.getElementById('inputBPDUFilter').disabled = true;
+                document.getElementById('inputBPDUGuard').disabled = true;
+                document.getElementById('inputCost').readOnly = true;
+                document.getElementById('inputGuard').disabled = true;
+                document.getElementById('inputLinktype').disabled = true;
+                document.getElementById('inputPortpriority').readOnly = true;
+                document.getElementById('inputInterfacePortfast').disabled = true;
+                document.getElementById('inputInterfaceMST').disabled = true;
+                document.getElementById('inputIntMST').readOnly = true;
+                document.getElementById('inputIntMstCost').readOnly = true;
+                document.getElementById('inputIntMSTPortpriority').readOnly = true;
+            } else if (this.value == 'mode') {
+                document.getElementById('inputVLAN').readOnly = true;
+                document.getElementById('inputMode').disabled = false;
+                document.getElementById('inputConfigurationOption1').disabled = true;
+                document.getElementById('inputConfigurationOption2').disabled = true;
+                document.getElementById('inputConfigName').readOnly = true;
+                document.getElementById('inputForwardOption1').disabled = true;
+                document.getElementById('inputForwardOption2').disabled = true;
+                document.getElementById('inputForwardTime').readOnly = true;
+                document.getElementById('inputHelloOption1').disabled = true;
+                document.getElementById('inputHelloOption2').disabled = true;
+                document.getElementById('inputHelloTime').readOnly = true;
+                document.getElementById('inputMaxAgeOption1').disabled = true;
+                document.getElementById('inputMaxAgeOption2').disabled = true;
+                document.getElementById('inputMaxAge').readOnly = true;
+                document.getElementById('inputMaxHopsOption1').disabled = true;
+                document.getElementById('inputMaxHopsOption2').disabled = true;
+                document.getElementById('inputMaxHops').readOnly = true;
+                document.getElementById('long').disabled = true;
+                document.getElementById('short').disabled = true;
+                document.getElementById('inputPortfast').disabled = true;
+                document.getElementById('inputTranmsit').readOnly = true;
+                document.getElementById('inputUplinkfast').readOnly = true;
+                document.getElementById('inputPriorityOption1').disabled = true;
+                document.getElementById('inputPriorityOption2').disabled = true;
+                document.getElementById('inputPriority').readOnly = true;
+                document.getElementById('inputRootOption1').disabled = true;
+                document.getElementById('inputRootOption2').disabled = true;
+                document.getElementById('inputRoot').disabled = true;
+                document.getElementById('inputBPDUFilter').disabled = true;
+                document.getElementById('inputBPDUGuard').disabled = true;
+                document.getElementById('inputCost').readOnly = true;
+                document.getElementById('inputGuard').disabled = true;
+                document.getElementById('inputLinktype').disabled = true;
+                document.getElementById('inputPortpriority').readOnly = true;
+                document.getElementById('inputInterfacePortfast').disabled = true;
+                document.getElementById('inputInterfaceMST').disabled = true;
+                document.getElementById('inputIntMST').readOnly = true;
+                document.getElementById('inputIntMstCost').readOnly = true;
+                document.getElementById('inputIntMSTPortpriority').readOnly = true;
+            } else if (this.value == 'mst') {
+                document.getElementById('inputVLAN').readOnly = true;
+                document.getElementById('inputMode').disabled = true;
+                document.getElementById('inputConfigurationOption1').disabled = false;
+                document.getElementById('inputConfigurationOption2').disabled = false;
+                document.getElementById('inputConfigName').readOnly = false;
+                document.getElementById('inputForwardOption1').disabled = false;
+                document.getElementById('inputForwardOption2').disabled = false;
+                document.getElementById('inputForwardTime').readOnly = false;
+                document.getElementById('inputHelloOption1').disabled = false;
+                document.getElementById('inputHelloOption2').disabled = false;
+                document.getElementById('inputHelloTime').readOnly = false;
+                document.getElementById('inputMaxAgeOption1').disabled = false;
+                document.getElementById('inputMaxAgeOption2').disabled = false;
+                document.getElementById('inputMaxAge').readOnly = false;
+                document.getElementById('inputMaxHopsOption1').disabled = false;
+                document.getElementById('inputMaxHopsOption2').disabled = false;
+                document.getElementById('inputMaxHops').readOnly = false;
+                document.getElementById('long').disabled = true;
+                document.getElementById('short').disabled = true;
+                document.getElementById('inputPortfast').disabled = true;
+                document.getElementById('inputTranmsit').readOnly = true;
+                document.getElementById('inputUplinkfast').readOnly = true;
+                document.getElementById('inputPriorityOption1').disabled = true;
+                document.getElementById('inputPriorityOption2').disabled = true;
+                document.getElementById('inputPriority').readOnly = true;
+                document.getElementById('inputRootOption1').disabled = true;
+                document.getElementById('inputRootOption2').disabled = true;
+                document.getElementById('inputRoot').disabled = true;
+                document.getElementById('inputBPDUFilter').disabled = true;
+                document.getElementById('inputBPDUGuard').disabled = true;
+                document.getElementById('inputCost').readOnly = true;
+                document.getElementById('inputGuard').disabled = true;
+                document.getElementById('inputLinktype').disabled = true;
+                document.getElementById('inputPortpriority').readOnly = true;
+                document.getElementById('inputInterfacePortfast').disabled = true;
+                document.getElementById('inputInterfaceMST').disabled = true;
+                document.getElementById('inputIntMST').readOnly = true;
+                document.getElementById('inputIntMstCost').readOnly = true;
+                document.getElementById('inputIntMSTPortpriority').readOnly = true;
+            } else if (this.value == 'pathcost') {
+                document.getElementById('inputVLAN').readOnly = true;
+                document.getElementById('inputMode').disabled = true;
+                document.getElementById('inputConfigurationOption1').disabled = true;
+                document.getElementById('inputConfigurationOption2').disabled = true;
+                document.getElementById('inputConfigName').readOnly = true;
+                document.getElementById('inputForwardOption1').disabled = true;
+                document.getElementById('inputForwardOption2').disabled = true;
+                document.getElementById('inputForwardTime').readOnly = true;
+                document.getElementById('inputHelloOption1').disabled = true;
+                document.getElementById('inputHelloOption2').disabled = true;
+                document.getElementById('inputHelloTime').readOnly = true;
+                document.getElementById('inputMaxAgeOption1').disabled = true;
+                document.getElementById('inputMaxAgeOption2').disabled = true;
+                document.getElementById('inputMaxAge').readOnly = true;
+                document.getElementById('inputMaxHopsOption1').disabled = true;
+                document.getElementById('inputMaxHopsOption2').disabled = true;
+                document.getElementById('inputMaxHops').readOnly = true;
+                document.getElementById('long').disabled = false;
+                document.getElementById('short').disabled = false;
+                document.getElementById('inputPortfast').disabled = true;
+                document.getElementById('inputTranmsit').readOnly = true;
+                document.getElementById('inputUplinkfast').readOnly = true;
+                document.getElementById('inputPriorityOption1').disabled = true;
+                document.getElementById('inputPriorityOption2').disabled = true;
+                document.getElementById('inputPriority').readOnly = true;
+                document.getElementById('inputRootOption1').disabled = true;
+                document.getElementById('inputRootOption2').disabled = true;
+                document.getElementById('inputRoot').disabled = true;
+                document.getElementById('inputBPDUFilter').disabled = true;
+                document.getElementById('inputBPDUGuard').disabled = true;
+                document.getElementById('inputCost').readOnly = true;
+                document.getElementById('inputGuard').disabled = true;
+                document.getElementById('inputLinktype').disabled = true;
+                document.getElementById('inputPortpriority').readOnly = true;
+                document.getElementById('inputInterfacePortfast').disabled = true;
+                document.getElementById('inputInterfaceMST').disabled = true;
+                document.getElementById('inputIntMST').readOnly = true;
+                document.getElementById('inputIntMstCost').readOnly = true;
+                document.getElementById('inputIntMSTPortpriority').readOnly = true;
+            } else if (this.value == 'portfast') {
+                document.getElementById('inputVLAN').readOnly = true;
+                document.getElementById('inputMode').disabled = true;
+                document.getElementById('inputConfigurationOption1').disabled = true;
+                document.getElementById('inputConfigurationOption2').disabled = true;
+                document.getElementById('inputConfigName').readOnly = true;
+                document.getElementById('inputForwardOption1').disabled = true;
+                document.getElementById('inputForwardOption2').disabled = true;
+                document.getElementById('inputForwardTime').readOnly = true;
+                document.getElementById('inputHelloOption1').disabled = true;
+                document.getElementById('inputHelloOption2').disabled = true;
+                document.getElementById('inputHelloTime').readOnly = true;
+                document.getElementById('inputMaxAgeOption1').disabled = true;
+                document.getElementById('inputMaxAgeOption2').disabled = true;
+                document.getElementById('inputMaxAge').readOnly = true;
+                document.getElementById('inputMaxHopsOption1').disabled = true;
+                document.getElementById('inputMaxHopsOption2').disabled = true;
+                document.getElementById('inputMaxHops').readOnly = true;
+                document.getElementById('long').disabled = true;
+                document.getElementById('short').disabled = true;
+                document.getElementById('inputPortfast').disabled = false;
+                document.getElementById('inputTranmsit').readOnly = true;
+                document.getElementById('inputUplinkfast').readOnly = true;
+                document.getElementById('inputPriorityOption1').disabled = true;
+                document.getElementById('inputPriorityOption2').disabled = true;
+                document.getElementById('inputPriority').readOnly = true;
+                document.getElementById('inputRootOption1').disabled = true;
+                document.getElementById('inputRootOption2').disabled = true;
+                document.getElementById('inputRoot').disabled = true;
+                document.getElementById('inputBPDUFilter').disabled = true;
+                document.getElementById('inputBPDUGuard').disabled = true;
+                document.getElementById('inputCost').readOnly = true;
+                document.getElementById('inputGuard').disabled = true;
+                document.getElementById('inputLinktype').disabled = true;
+                document.getElementById('inputPortpriority').readOnly = true;
+                document.getElementById('inputInterfacePortfast').disabled = true;
+                document.getElementById('inputInterfaceMST').disabled = true;
+                document.getElementById('inputIntMST').readOnly = true;
+                document.getElementById('inputIntMstCost').readOnly = true;
+                document.getElementById('inputIntMSTPortpriority').readOnly = true;
+            } else if (this.value == 'transmit') {
+                document.getElementById('inputVLAN').readOnly = true;
+                document.getElementById('inputMode').disabled = true;
+                document.getElementById('inputConfigurationOption1').disabled = true;
+                document.getElementById('inputConfigurationOption2').disabled = true;
+                document.getElementById('inputConfigName').readOnly = true;
+                document.getElementById('inputForwardOption1').disabled = true;
+                document.getElementById('inputForwardOption2').disabled = true;
+                document.getElementById('inputForwardTime').readOnly = true;
+                document.getElementById('inputHelloOption1').disabled = true;
+                document.getElementById('inputHelloOption2').disabled = true;
+                document.getElementById('inputHelloTime').readOnly = true;
+                document.getElementById('inputMaxAgeOption1').disabled = true;
+                document.getElementById('inputMaxAgeOption2').disabled = true;
+                document.getElementById('inputMaxAge').readOnly = true;
+                document.getElementById('inputMaxHopsOption1').disabled = true;
+                document.getElementById('inputMaxHopsOption2').disabled = true;
+                document.getElementById('inputMaxHops').readOnly = true;
+                document.getElementById('long').disabled = true;
+                document.getElementById('short').disabled = true;
+                document.getElementById('inputPortfast').disabled = true;
+                document.getElementById('inputTranmsit').readOnly = false;
+                document.getElementById('inputUplinkfast').readOnly = true;
+                document.getElementById('inputPriorityOption1').disabled = true;
+                document.getElementById('inputPriorityOption2').disabled = true;
+                document.getElementById('inputPriority').readOnly = true;
+                document.getElementById('inputRootOption1').disabled = true;
+                document.getElementById('inputRootOption2').disabled = true;
+                document.getElementById('inputRoot').disabled = true;
+                document.getElementById('inputBPDUFilter').disabled = true;
+                document.getElementById('inputBPDUGuard').disabled = true;
+                document.getElementById('inputCost').readOnly = true;
+                document.getElementById('inputGuard').disabled = true;
+                document.getElementById('inputLinktype').disabled = true;
+                document.getElementById('inputPortpriority').readOnly = true;
+                document.getElementById('inputInterfacePortfast').disabled = true;
+                document.getElementById('inputInterfaceMST').disabled = true;
+                document.getElementById('inputIntMST').readOnly = true;
+                document.getElementById('inputIntMstCost').readOnly = true;
+                document.getElementById('inputIntMSTPortpriority').readOnly = true;
+            } else if (this.value == 'uplinkfast') {
+                document.getElementById('inputVLAN').readOnly = true;
+                document.getElementById('inputMode').disabled = true;
+                document.getElementById('inputConfigurationOption1').disabled = true;
+                document.getElementById('inputConfigurationOption2').disabled = true;
+                document.getElementById('inputConfigName').readOnly = true;
+                document.getElementById('inputForwardOption1').disabled = true;
+                document.getElementById('inputForwardOption2').disabled = true;
+                document.getElementById('inputForwardTime').readOnly = true;
+                document.getElementById('inputHelloOption1').disabled = true;
+                document.getElementById('inputHelloOption2').disabled = true;
+                document.getElementById('inputHelloTime').readOnly = true;
+                document.getElementById('inputMaxAgeOption1').disabled = true;
+                document.getElementById('inputMaxAgeOption2').disabled = true;
+                document.getElementById('inputMaxAge').readOnly = true;
+                document.getElementById('inputMaxHopsOption1').disabled = true;
+                document.getElementById('inputMaxHopsOption2').disabled = true;
+                document.getElementById('inputMaxHops').readOnly = true;
+                document.getElementById('long').disabled = true;
+                document.getElementById('short').disabled = true;
+                document.getElementById('inputPortfast').disabled = true;
+                document.getElementById('inputTranmsit').readOnly = true;
+                document.getElementById('inputUplinkfast').readOnly = false;
+                document.getElementById('inputPriorityOption1').disabled = true;
+                document.getElementById('inputPriorityOption2').disabled = true;
+                document.getElementById('inputPriority').readOnly = true;
+                document.getElementById('inputRootOption1').disabled = true;
+                document.getElementById('inputRootOption2').disabled = true;
+                document.getElementById('inputRoot').disabled = true;
+                document.getElementById('inputBPDUFilter').disabled = true;
+                document.getElementById('inputBPDUGuard').disabled = true;
+                document.getElementById('inputCost').readOnly = true;
+                document.getElementById('inputGuard').disabled = true;
+                document.getElementById('inputLinktype').disabled = true;
+                document.getElementById('inputPortpriority').readOnly = true;
+                document.getElementById('inputInterfacePortfast').disabled = true;
+                document.getElementById('inputInterfaceMST').disabled = true;
+                document.getElementById('inputIntMST').readOnly = true;
+                document.getElementById('inputIntMstCost').readOnly = true;
+                document.getElementById('inputIntMSTPortpriority').readOnly = true;
+            } else if (this.value == 'vlan') {
+                document.getElementById('inputVLAN').readOnly = false;
+                document.getElementById('inputMode').disabled = true;
+                document.getElementById('inputConfigurationOption1').disabled = true;
+                document.getElementById('inputConfigurationOption2').disabled = true;
+                document.getElementById('inputConfigName').readOnly = true;
+                document.getElementById('inputForwardOption1').disabled = false;
+                document.getElementById('inputForwardOption2').disabled = false;
+                document.getElementById('inputForwardTime').readOnly = false;
+                document.getElementById('inputHelloOption1').disabled = false;
+                document.getElementById('inputHelloOption2').disabled = false;
+                document.getElementById('inputHelloTime').readOnly = false;
+                document.getElementById('inputMaxAgeOption1').disabled = false;
+                document.getElementById('inputMaxAgeOption2').disabled = false;
+                document.getElementById('inputMaxAge').readOnly = false;
+                document.getElementById('inputMaxHopsOption1').disabled = true;
+                document.getElementById('inputMaxHopsOption2').disabled = true;
+                document.getElementById('inputMaxHops').readOnly = true;
+                document.getElementById('long').disabled = true;
+                document.getElementById('short').disabled = true;
+                document.getElementById('inputPortfast').disabled = true;
+                document.getElementById('inputTranmsit').readOnly = true;
+                document.getElementById('inputUplinkfast').readOnly = true;
+                document.getElementById('inputPriorityOption1').disabled = false;
+                document.getElementById('inputPriorityOption2').disabled = false;
+                document.getElementById('inputPriority').readOnly = false;
+                document.getElementById('inputRootOption1').disabled = false;
+                document.getElementById('inputRootOption2').disabled = false;
+                document.getElementById('inputRoot').disabled = false;
+                document.getElementById('inputBPDUFilter').disabled = true;
+                document.getElementById('inputBPDUGuard').disabled = true;
+                document.getElementById('inputCost').readOnly = true;
+                document.getElementById('inputGuard').disabled = true;
+                document.getElementById('inputLinktype').disabled = true;
+                document.getElementById('inputPortpriority').readOnly = true;
+                document.getElementById('inputInterfacePortfast').disabled = true;
+                document.getElementById('inputInterfaceMST').disabled = true;
+                document.getElementById('inputIntMST').readOnly = true;
+                document.getElementById('inputIntMstCost').readOnly = true;
+                document.getElementById('inputIntMSTPortpriority').readOnly = true;
+            }
+
+            if (this.value == "bpdufilter2") {
+                document.getElementById('inputVLAN').readOnly = true;
+                document.getElementById('inputMode').disabled = true;
+                document.getElementById('inputConfigurationOption1').disabled = true;
+                document.getElementById('inputConfigurationOption2').disabled = true;
+                document.getElementById('inputConfigName').readOnly = true;
+                document.getElementById('inputForwardOption1').disabled = true;
+                document.getElementById('inputForwardOption2').disabled = true;
+                document.getElementById('inputForwardTime').readOnly = true;
+                document.getElementById('inputHelloOption1').disabled = true;
+                document.getElementById('inputHelloOption2').disabled = true;
+                document.getElementById('inputHelloTime').readOnly = true;
+                document.getElementById('inputMaxAgeOption1').disabled = true;
+                document.getElementById('inputMaxAgeOption2').disabled = true;
+                document.getElementById('inputMaxAge').readOnly = true;
+                document.getElementById('inputMaxHopsOption1').disabled = true;
+                document.getElementById('inputMaxHopsOption2').disabled = true;
+                document.getElementById('inputMaxHops').readOnly = true;
+                document.getElementById('long').disabled = true;
+                document.getElementById('short').disabled = true;
+                document.getElementById('inputPortfast').disabled = true;
+                document.getElementById('inputTranmsit').readOnly = true;
+                document.getElementById('inputUplinkfast').readOnly = true;
+                document.getElementById('inputPriorityOption1').disabled = true;
+                document.getElementById('inputPriorityOption2').disabled = true;
+                document.getElementById('inputPriority').readOnly = true;
+                document.getElementById('inputRootOption1').disabled = true;
+                document.getElementById('inputRootOption2').disabled = true;
+                document.getElementById('inputRoot').disabled = true;
+                document.getElementById('inputBPDUFilter').disabled = false;
+                document.getElementById('inputBPDUGuard').disabled = true;
+                document.getElementById('inputCost').readOnly = true;
+                document.getElementById('inputGuard').disabled = true;
+                document.getElementById('inputLinktype').disabled = true;
+                document.getElementById('inputPortpriority').readOnly = true;
+                document.getElementById('inputInterfacePortfast').disabled = true;
+                document.getElementById('inputInterfaceMST').disabled = true;
+                document.getElementById('inputIntMST').readOnly = true;
+                document.getElementById('inputIntMstCost').readOnly = true;
+                document.getElementById('inputIntMSTPortpriority').readOnly = true;
+            }
+            if (this.value == "bpduguard2") {
+                document.getElementById('inputVLAN').readOnly = true;
+                document.getElementById('inputMode').disabled = true;
+                document.getElementById('inputConfigurationOption1').disabled = true;
+                document.getElementById('inputConfigurationOption2').disabled = true;
+                document.getElementById('inputConfigName').readOnly = true;
+                document.getElementById('inputForwardOption1').disabled = true;
+                document.getElementById('inputForwardOption2').disabled = true;
+                document.getElementById('inputForwardTime').readOnly = true;
+                document.getElementById('inputHelloOption1').disabled = true;
+                document.getElementById('inputHelloOption2').disabled = true;
+                document.getElementById('inputHelloTime').readOnly = true;
+                document.getElementById('inputMaxAgeOption1').disabled = true;
+                document.getElementById('inputMaxAgeOption2').disabled = true;
+                document.getElementById('inputMaxAge').readOnly = true;
+                document.getElementById('inputMaxHopsOption1').disabled = true;
+                document.getElementById('inputMaxHopsOption2').disabled = true;
+                document.getElementById('inputMaxHops').readOnly = true;
+                document.getElementById('long').disabled = true;
+                document.getElementById('short').disabled = true;
+                document.getElementById('inputPortfast').disabled = true;
+                document.getElementById('inputTranmsit').readOnly = true;
+                document.getElementById('inputUplinkfast').readOnly = true;
+                document.getElementById('inputPriorityOption1').disabled = true;
+                document.getElementById('inputPriorityOption2').disabled = true;
+                document.getElementById('inputPriority').readOnly = true;
+                document.getElementById('inputRootOption1').disabled = true;
+                document.getElementById('inputRootOption2').disabled = true;
+                document.getElementById('inputRoot').disabled = true;
+                document.getElementById('inputBPDUFilter').disabled = true;
+                document.getElementById('inputBPDUGuard').disabled = false;
+                document.getElementById('inputCost').readOnly = true;
+                document.getElementById('inputGuard').disabled = true;
+                document.getElementById('inputLinktype').disabled = true;
+                document.getElementById('inputPortpriority').readOnly = true;
+                document.getElementById('inputInterfacePortfast').disabled = true;
+                document.getElementById('inputInterfaceMST').disabled = true;
+                document.getElementById('inputIntMST').readOnly = true;
+                document.getElementById('inputIntMstCost').readOnly = true;
+                document.getElementById('inputIntMSTPortpriority').readOnly = true;
+            }
+            if (this.value == "cost2") {
+                document.getElementById('inputVLAN').readOnly = true;
+                document.getElementById('inputMode').disabled = true;
+                document.getElementById('inputConfigurationOption1').disabled = true;
+                document.getElementById('inputConfigurationOption2').disabled = true;
+                document.getElementById('inputConfigName').readOnly = true;
+                document.getElementById('inputForwardOption1').disabled = true;
+                document.getElementById('inputForwardOption2').disabled = true;
+                document.getElementById('inputForwardTime').readOnly = true;
+                document.getElementById('inputHelloOption1').disabled = true;
+                document.getElementById('inputHelloOption2').disabled = true;
+                document.getElementById('inputHelloTime').readOnly = true;
+                document.getElementById('inputMaxAgeOption1').disabled = true;
+                document.getElementById('inputMaxAgeOption2').disabled = true;
+                document.getElementById('inputMaxAge').readOnly = true;
+                document.getElementById('inputMaxHopsOption1').disabled = true;
+                document.getElementById('inputMaxHopsOption2').disabled = true;
+                document.getElementById('inputMaxHops').readOnly = true;
+                document.getElementById('long').disabled = true;
+                document.getElementById('short').disabled = true;
+                document.getElementById('inputPortfast').disabled = true;
+                document.getElementById('inputTranmsit').readOnly = true;
+                document.getElementById('inputUplinkfast').readOnly = true;
+                document.getElementById('inputPriorityOption1').disabled = true;
+                document.getElementById('inputPriorityOption2').disabled = true;
+                document.getElementById('inputPriority').readOnly = true;
+                document.getElementById('inputRootOption1').disabled = true;
+                document.getElementById('inputRootOption2').disabled = true;
+                document.getElementById('inputRoot').disabled = true;
+                document.getElementById('inputBPDUFilter').disabled = true;
+                document.getElementById('inputBPDUGuard').disabled = true;
+                document.getElementById('inputCost').readOnly = false;
+                document.getElementById('inputGuard').disabled = true;
+                document.getElementById('inputLinktype').disabled = true;
+                document.getElementById('inputPortpriority').readOnly = true;
+                document.getElementById('inputInterfacePortfast').disabled = true;
+                document.getElementById('inputInterfaceMST').disabled = true;
+                document.getElementById('inputIntMST').readOnly = true;
+                document.getElementById('inputIntMstCost').readOnly = true;
+                document.getElementById('inputIntMSTPortpriority').readOnly = true;
+            }
+            if (this.value == "mst2") {
+                document.getElementById('inputVLAN').readOnly = true;
+                document.getElementById('inputMode').disabled = true;
+                document.getElementById('inputConfigurationOption1').disabled = true;
+                document.getElementById('inputConfigurationOption2').disabled = true;
+                document.getElementById('inputConfigName').readOnly = true;
+                document.getElementById('inputForwardOption1').disabled = true;
+                document.getElementById('inputForwardOption2').disabled = true;
+                document.getElementById('inputForwardTime').readOnly = true;
+                document.getElementById('inputHelloOption1').disabled = true;
+                document.getElementById('inputHelloOption2').disabled = true;
+                document.getElementById('inputHelloTime').readOnly = true;
+                document.getElementById('inputMaxAgeOption1').disabled = true;
+                document.getElementById('inputMaxAgeOption2').disabled = true;
+                document.getElementById('inputMaxAge').readOnly = true;
+                document.getElementById('inputMaxHopsOption1').disabled = true;
+                document.getElementById('inputMaxHopsOption2').disabled = true;
+                document.getElementById('inputMaxHops').readOnly = true;
+                document.getElementById('long').disabled = true;
+                document.getElementById('short').disabled = true;
+                document.getElementById('inputPortfast').disabled = true;
+                document.getElementById('inputTranmsit').readOnly = true;
+                document.getElementById('inputUplinkfast').readOnly = true;
+                document.getElementById('inputPriorityOption1').disabled = true;
+                document.getElementById('inputPriorityOption2').disabled = true;
+                document.getElementById('inputPriority').readOnly = true;
+                document.getElementById('inputRootOption1').disabled = true;
+                document.getElementById('inputRootOption2').disabled = true;
+                document.getElementById('inputRoot').disabled = true;
+                document.getElementById('inputBPDUFilter').disabled = true;
+                document.getElementById('inputBPDUGuard').disabled = true;
+                document.getElementById('inputCost').readOnly = true;
+                document.getElementById('inputGuard').disabled = true;
+                document.getElementById('inputLinktype').disabled = true;
+                document.getElementById('inputPortpriority').readOnly = true;
+                document.getElementById('inputInterfacePortfast').disabled = true;
+                document.getElementById('inputInterfaceMST').disabled = false;
+                document.getElementById('inputIntMST').readOnly = true;
+                document.getElementById('inputIntMstCost').readOnly = true;
+                document.getElementById('inputIntMSTPortpriority').readOnly = true;
+            }
+
+            })
+
+    document.getElementById('inputInterfaceMST').addEventListener('change', function() {
+            if (this.value == 'instance cost') {
+                document.getElementById('inputIntMST').readOnly = false;
+                document.getElementById('inputIntMstCost').readOnly = false;
+                document.getElementById('inputIntMSTPortpriority').readOnly = true;
+        }
+            else if (this.value == 'instance port-priority') {
+                document.getElementById('inputIntMST').readOnly = false;
+                document.getElementById('inputIntMstCost').readOnly = true;
+                document.getElementById('inputIntMSTPortpriority').readOnly = false;
+        }
+            else {
+                document.getElementById('inputIntMST').readOnly = true;
+                document.getElementById('inputIntMstCost').readOnly = true;
+                document.getElementById('inputIntMSTPortpriority').readOnly = true;
+            }
+            })
+
+
+    function handleClick(myRadio) {
+            if (myRadio.value == 'Yes config') {
+                document.getElementById('inputConfigName').readOnly = false;
+            } else if (myRadio.value == 'No config') {
+                document.getElementById('inputConfigName').readOnly = true;
+            }
+
+            if (myRadio.value == 'Yes forward') {
+                document.getElementById('inputForwardTime').readOnly = false;
+            } else if (myRadio.value == 'No forward') {
+                document.getElementById('inputForwardTime').readOnly = true;
+            }
+
+            if (myRadio.value == 'Yes hello') {
+                document.getElementById('inputHelloTime').readOnly = false;
+            } else if (myRadio.value == 'No hello') {
+                document.getElementById('inputHelloTime').readOnly = true;
+            }
+
+            if (myRadio.value == 'Yes maxage') {
+                document.getElementById('inputMaxAge').readOnly = false;
+            } else if (myRadio.value == 'No maxage') {
+                document.getElementById('inputMaxAge').readOnly = true;
+            }
+
+            if (myRadio.value == 'Yes maxhops') {
+                document.getElementById('inputMaxHops').readOnly = false;
+            } else if (myRadio.value == 'No maxhops') {
+                document.getElementById('inputMaxHops').readOnly = true;
+            }
+
+            if (myRadio.value == 'Yes priority') {
+                document.getElementById('inputPriority').readOnly = false;
+            } else if (myRadio.value == 'No priority') {
+                document.getElementById('inputPriority').readOnly = true;
+            }
+            if (myRadio.value == 'Yes root') {
+                document.getElementById('inputRoot').disabled= false;
+            } else if (myRadio.value == 'No root') {
+                document.getElementById('inputRoot').disabled= true;
+            }
+        }
+
+    </script>
+
+  {% endblock body %}

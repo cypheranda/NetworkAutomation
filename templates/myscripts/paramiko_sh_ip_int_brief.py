@@ -11,28 +11,31 @@ def connect(server_ip, server_port, user, password):
     ssh_client = paramiko.SSHClient()
     ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-    # print(f'Connecting to {server_ip}')
     ssh_client.connect(hostname=server_ip, port=server_port, username=user, password=password,
                        look_for_keys=False, allow_agent=False)
     return ssh_client
+
 
 def get_shell(ssh_client):
     shell = ssh_client.invoke_shell()
     return shell
 
+
 def send_command(shell, command, timeout=1):
-    # print(f'Sending command: {command}')
-    shell.send(command+'\n')
+    shell.send(command + '\n')
     time.sleep(timeout)
 
-def show(shell,n=10000):
-    output=shell.recv(n)
+
+def show(shell, n=10000):
+    output = shell.recv(n)
     return output.decode()
 
+
 def close(ssh_client):
-    if ssh_client.get_transport().is_active() == True:
+    if ssh_client.get_transport().is_active():
         # print('Closing connection...')
         ssh_client.close()
+
 
 def show_ipintbrief(device_ip, username, password, enable_pass):
     # arguments
@@ -81,8 +84,6 @@ def show_ipintbrief(device_ip, username, password, enable_pass):
     int = [interface.get('interface') for interface in interfaces if
            interface.get('status') and interface.get('protocol') == 'up']
     int_ipaddress = [interface.get('ip_address') for interface in interfaces if
-           interface.get('status') and interface.get('protocol') == 'up']
+                     interface.get('status') and interface.get('protocol') == 'up']
 
     return int, int_ipaddress
-
-

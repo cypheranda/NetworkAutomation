@@ -1,0 +1,3 @@
+interface number
+ip ospf database-filter all out
+end

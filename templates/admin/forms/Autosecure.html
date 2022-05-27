@@ -151,7 +151,7 @@
             <label for="inputSSHOption" class="col-sm-2 col-form-label">Configure SSH server?</label>
             <div class="col-sm-10">
               <input type="radio" name="inputSSHOption" id="inputSSHOption" value="Yes" onclick="handleClick(this);"> Yes </input>
-                <input type="radio" name="inputSSHOption" id="inputSSHOption" value="No" checked onclick="handleClick(this);"> No </input>
+                <input type="radio" name="inputSSHOption" id="inputSSHOption" value="No" required onclick="handleClick(this);"> No </input>
             </div>
           </div>
     <div class="form-group row">
@@ -170,14 +170,14 @@
             <label for="inputFirewallOption" class="col-sm-2 col-form-label">Configure CBAC Firewall feature?</label>
             <div class="col-sm-10">
               <input type="radio" name="inputFirewallOption" id="inputFirewallOption" value="Yes"> Yes </input>
-                <input type="radio" name="inputFirewallOption" id="inputFirewallOption" value="No" checked> No </input>
+                <input type="radio" name="inputFirewallOption" id="inputFirewallOption" value="No" required> No </input>
             </div>
           </div>
     <div class="form-group row">
             <label for="inputTCPOption" class="col-sm-2 col-form-label">Enable tcp intercept feature?</label>
             <div class="col-sm-10">
               <input type="radio" name="inputTCPOption" id="inputTCPOption" value="Yes"> Yes </input>
-                <input type="radio" name="inputTCPOption" id="inputTCPOption" value="No" checked> No </input>
+                <input type="radio" name="inputTCPOption" id="inputTCPOption" value="No" required> No </input>
             </div>
           </div>
               <div class="form-check">

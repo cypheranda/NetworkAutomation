@@ -1,0 +1,5 @@
+router ospf process_id
+area area_id authentication
+area area_id stub no summary
+area area_id default-cost cost_value
+end

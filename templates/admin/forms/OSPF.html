@@ -1,0 +1,743 @@
+{% extends 'admin/master.html' %}
+{% block body %}
+{{ super() }}
+
+{% if current_user.is_authenticated %}
+
+{% block content %}
+<section class="content-header">
+  <h1 >
+      {{ template_type }} form
+      <br><br><br>
+  </h1>
+</section>
+    <form method="post" style="text-indent: 40px">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <div class="form-group row">
+            <label for="inputUsername" class="col-sm-2 col-form-label">Username</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" name="inputUsername" placeholder="Username" value="{{ request.form['inputUsername'] }}"></input>
+            </div>
+          </div>
+        <div class="form-group row">
+            <label for="inputPassword" class="col-sm-2 col-form-label">Password</label>
+            <div class="col-sm-10">
+              <input type="password" class="form-control" name="inputPassword" placeholder="Password" value="{{ request.form['inputPassword'] }}"></input>
+            </div>
+          </div>
+            <div class="form-group row">
+            <label for="inputEnablePassword" class="col-sm-2 col-form-label">Enable password</label>
+            <div class="col-sm-10">
+              <input type="password" class="form-control" name="inputEnablePassword" placeholder="Enable password" value="{{ request.form['inputEnablePassword'] }}"></input>
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="inputInventory" data-live-search="true" class="col-sm-2 col-form-label">Inventory</label>
+            <div class="col-sm-10">
+                <select required="required" class="custom-select my-1 mr-sm-2" name="inputInventory" id="inputInventory" value="{{ request.form['inputInventory'] }}" onchange="myFunction()">
+                    <option value="">Choose...</option>
+                    {% for inventory in inventories %}
+                        <option data-id={{ inventory.name }} rel={{ inventory.name }} value={{ inventory.name }}>{{ inventory.name }}</option>
+                    {% endfor %}
+                  </select>
+            </div>
+          </div>
+        <div class="form-group row">
+            <label for="inputDevices" data-live-search="true" class="col-sm-2 col-form-label">Devices</label>
+            <div class="col-sm-10">
+                <select required="required" class="custom-select my-1 mr-sm-2" name="inputDevices" id="inputDevices" value="{{ request.form['inputDevices'] }}" style="display:none" onchange="showHiddenSelect2();">
+                    <option value="">Choose...</option>
+                    {% for key in elements.keys() %}
+                        {% for element in elements[key] %}
+                        <option style="display:none" class={{ key }} rel={{ element }} value={{ element }}>{{ element }}</option>
+                    {% endfor %}
+                {% endfor %}
+                  </select>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputType" data-live-search="true" class="col-sm-2 col-form-label">Switch or interface?</label>
+            <div class="col-sm-10">
+                <select required="required" class="custom-select my-1 mr-sm-2" name="inputType" id="inputType" value="{{ request.form['inputType'] }}">
+                    <option value="">Choose...</option>
+                <option value="area_parameters">Area parameters</option>
+                <option value="blocking_ospf_lsa_flooding">Blocking OSPF LSA flooding</option>
+                <option value="blocking_ospf_lsa_flooding_to_multipoint">Blocking OSPF LSA flooding to multipoint </option>
+                <option value="changing_ospf_administrative_distances">Changing OSPF administrative distances</option>
+                <option value="changing_the_lsa_group_pacing_interval">Changing the LSA group pacing interval</option>
+                <option value="changing_lookup_of_dns_names">Changing lookup of DNS names</option>
+                <option value="configure_ospf_over_on_demand_circuits">Configure OSPF over on demand circuits</option>
+                <option value="configure_route_calculation_metrics">Configure route calculation metrics</option>
+                <option value="controlling_default_metrics">Controlling default metrics</option>
+                <option value="enable_ospf">Enable OSPF</option>
+                <option value="generating_default_route">Generating default route</option>
+                <option value="interface_parameters">Interface parameters</option>
+                <option value="nssa_abr_as_a_forced_nssa_translator">NSSA abr as a forced NSSA translator</option>
+                <option value="ospfv2_nssa">OSPFv2 NSSA</option>
+                <option value="point_to_multipoint_broadcast">Point to multipoint broadcast</option>
+                <option value="point_to_multipoint_nonbroadcast">Point to multipoint nonbroadcast</option>
+                <option value="reducing_lsa_flooding">Reducing LSA flooding</option>
+                <option value="rfc_1587">RFC 1587</option>
+                  </select>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputProcessID" class="col-sm-2 col-form-label">Process ID</label>
+            <div class="col-sm-10">
+              <input type="number" min="1" max="65535" class="form-control" name="inputProcessID" id="inputProcessID" placeholder="1-65535" value="{{ request.form['inputProcessID'] }}" readonly="true"></input>
+            </div>
+          </div>
+
+        <div class="form-group row">
+            <label for="inputNetworkIP" class="col-sm-2 col-form-label">Network IP address</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" name="inputNetworkIP" id="inputNetworkIP" placeholder="A.B.C.D" value="{{ request.form['inputNetworkIP'] }}" readonly="true"></input>
+            </div>
+    </div>
+    <div class="form-group row">
+            <label for="inputWildcardMask" class="col-sm-2 col-form-label">OSPF wild card bits</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" name="inputWildcardMask" id="inputWildcardMask" placeholder="A.B.C.D" value="{{ request.form['inputWildcardMask'] }}" readonly="true"></input>
+            </div>
+    </div>
+    <div class="form-group row">
+            <label for="inputAreaID" class="col-sm-2 col-form-label">OSPF area ID as a decimal value</label>
+            <div class="col-sm-10">
+              <input type="number" min="1" max="4294967295" class="form-control" name="inputAreaID" id="inputAreaID" placeholder="0-4294967295" value="{{ request.form['inputAreaID'] }}" readonly="true"></input>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputCostValue" class="col-sm-2 col-form-label">Stub's advertised external route metric</label>
+            <div class="col-sm-10">
+              <input type="number" min="0" max="16777214" class="form-control" name="inputCostValue" id="inputCostValue" placeholder="0-16777214" value="{{ request.form['inputCostValue'] }}" readonly="true"></input>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputInterface" class="col-sm-2 col-form-label">Devices common interface to be configured</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" name="inputInterface" id="inputInterface" placeholder="GigabitEthernet0/1" value="{{ request.form['inputInterface'] }}" readonly="true"></input>
+            </div>
+    </div>
+    <div class="form-group row">
+            <label for="inputNeighborIP" class="col-sm-2 col-form-label">Neighbor IP address</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" name="inputNeighborIP" id="inputNeighborIP" placeholder="A.B.C.D" value="{{ request.form['inputNeighborIP'] }}" readonly="true"></input>
+            </div>
+    </div>
+    <div class="form-group row">
+            <label for="inputRoutesType" data-live-search="true" class="col-sm-2 col-form-label">Routes</label>
+            <div class="col-sm-10">
+                <select required="required" disabled class="custom-select my-1 mr-sm-2" name="inputRoutesType" id="inputRoutesType" value="{{ request.form['inputRoutesType'] }}">
+                    <option value="">Choose...</option>
+                    <option value="external">External type 5 and type 7 routes</option>
+                    <option value="inter-area">Inter-area routes</option>
+                    <option value="intra-area">Intra-area routes</option>
+                </select>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputDistanceValue" class="col-sm-2 col-form-label">Distance</label>
+            <div class="col-sm-10">
+              <input type="number" min="1" max="255" class="form-control" name="inputDistanceValue" id="inputDistanceValue" placeholder="1-255" value="{{ request.form['inputDistanceValue'] }}" readonly="true"></input>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputSeconds" class="col-sm-2 col-form-label">Interval in sec between group of LSA being refreshed or maxaged</label>
+            <div class="col-sm-10">
+              <input type="number" min="10" max="1800" class="form-control" name="inputSeconds" id="inputSeconds" placeholder="10-1800" value="{{ request.form['inputSeconds'] }}" readonly="true"></input>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputSPFStart" class="col-sm-2 col-form-label">Delay between receiving a change to SPF calculation in milliseconds</label>
+            <div class="col-sm-10">
+              <input type="number" min="1" max="600000" class="form-control" name="inputSPFStart" id="inputSPFStart" placeholder="1-600000" value="{{ request.form['inputSPFStart'] }}" readonly="true"></input>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputSPFHold" class="col-sm-2 col-form-label">Delay between first and second SPF calculation in milliseconds</label>
+            <div class="col-sm-10">
+              <input type="number" min="1" max="600000" class="form-control" name="inputSPFHold" id="inputSPFHold" placeholder="1-600000" value="{{ request.form['inputSPFHold'] }}" readonly="true"></input>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputSPFMaxwait" class="col-sm-2 col-form-label">Maximum wait time in milliseconds for SPF calculations</label>
+            <div class="col-sm-10">
+              <input type="number" min="1" max="600000" class="form-control" name="inputSPFMaxwait" id="inputSPFMaxwait" placeholder="1-600000" value="{{ request.form['inputSPFMaxwait'] }}" readonly="true"></input>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputRefBW" class="col-sm-2 col-form-label">The reference bandwidth in terms of Mbits per second</label>
+            <div class="col-sm-10">
+              <input type="number" min="1" max="4294967" class="form-control" name="inputRefBW" id="inputRefBW" placeholder="1-4294967" value="{{ request.form['inputRefBW'] }}" readonly="true"></input>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputIntCostValue" class="col-sm-2 col-form-label">Cost</label>
+            <div class="col-sm-10">
+              <input type="number" min="1" max="65535" class="form-control" name="inputIntCostValue" id="inputIntCostValue" placeholder="1-65535" value="{{ request.form['inputIntCostValue'] }}" readonly="true"></input>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputTransmitSeconds" class="col-sm-2 col-form-label">Transmit delay seconds</label>
+            <div class="col-sm-10">
+              <input type="number" min="1" max="65535" class="form-control" name="inputTransmitSeconds" id="inputTransmitSeconds" placeholder="1-65535" value="{{ request.form['inputTransmitSeconds'] }}" readonly="true"></input>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputRetransmitSeconds" class="col-sm-2 col-form-label">Retransmit seconds</label>
+            <div class="col-sm-10">
+              <input type="number" min="1" max="65535" class="form-control" name="inputRetransmitSeconds" id="inputRetransmitSeconds" placeholder="1-65535" value="{{ request.form['inputRetransmitSeconds'] }}" readonly="true"></input>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputPriority" class="col-sm-2 col-form-label">Priority</label>
+            <div class="col-sm-10">
+              <input type="number" min="0" max="255" class="form-control" name="inputPriority" id="inputPriority" placeholder="0-255" value="{{ request.form['inputPriority'] }}" readonly="true"></input>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputHelloInterval" class="col-sm-2 col-form-label">Hello interval seconds</label>
+            <div class="col-sm-10">
+              <input type="number" min="1" max="65535" class="form-control" name="inputHelloInterval" id="inputHelloInterval" placeholder="1-65535" value="{{ request.form['inputHelloInterval'] }}" readonly="true"></input>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputDeadInterval" class="col-sm-2 col-form-label">Dead interval seconds</label>
+            <div class="col-sm-10">
+              <input type="number" min="1" max="65535" class="form-control" name="inputDeadInterval" id="inputDeadInterval" placeholder="1-65535" value="{{ request.form['inputDeadInterval'] }}" readonly="true"></input>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputAuthKey" class="col-sm-2 col-form-label">The OSPF password (key) (maximum 8 characters)</label>
+            <div class="col-sm-10">
+              <input type="text" maxlength="8" class="form-control" name="inputAuthKey" id="inputAuthKey" placeholder="LINE" value="{{ request.form['inputAuthKey'] }}" readonly="true"></input>
+            </div>
+    </div>
+    <div class="form-group row">
+            <label for="inputKeyID" class="col-sm-2 col-form-label">Message digest Key ID</label>
+            <div class="col-sm-10">
+              <input type="number" min="1" max="255" class="form-control" name="inputKeyID" id="inputKeyID" placeholder="1-255" value="{{ request.form['inputKeyID'] }}" readonly="true"></input>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputMD5Key" class="col-sm-2 col-form-label">The OSPF message-digest password (key) (maximum 16 characters)</label>
+            <div class="col-sm-10">
+              <input type="text" maxlength="16" class="form-control" name="inputMD5Key" id="inputMD5Key" placeholder="LINE" value="{{ request.form['inputMD5Key'] }}" readonly="true"></input>
+            </div>
+    </div>
+    <div class="form-group row">
+            <label for="inputAuthenticationOption" class="col-sm-2 col-form-label">Set the forward delay for the spanning tree</label>
+            <div class="col-sm-10">
+              <input type="radio" required name="inputAuthenticationOption" id="inputAuthenticationOption1" value="message-digest" disabled onclick="handleClick(this);"> Message-digest </input>
+                <input type="radio" name="inputAuthenticationOption" id="inputAuthenticationOption2" value="null" disabled onclick="handleClick(this);"> Null </input>
+            </div>
+          </div>
+    <div class="form-group row">
+            <label for="inputNeighborIPs" class="col-sm-2 col-form-label">Neighbor IP addresses separated by commas</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" name="inputNeighborIPs" id="inputNeighborIPs" placeholder="A.B.C.D,A.B.C.D,A.B.C.D" value="{{ request.form['inputNeighborIPs'] }}" readonly="true"></input>
+            </div>
+    </div>
+    <div class="form-group row">
+            <label for="inputCostValues" class="col-sm-2 col-form-label">Neighbor cost values between 1 and 65535, separated by commas</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" name="inputCostValues" id="inputCostValues" placeholder="1,45,1111" value="{{ request.form['inputCostValues'] }}" readonly="true"></input>
+            </div>
+    </div>
+
+              <div class="form-check">
+      <input class="form-check-input" type="checkbox" value="" name="defaultCheck" id="defaultCheck" required>
+      <label class="form-check-label" for="defaultCheck">
+        Please note that this configuration is only for routers
+      </label>
+      <br><br>
+    </div>
+                      <div class="form-group row">
+            <div class="col-sm-10">
+              <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+          </div>
+    </form>
+{% endblock %}
+  {% endif %}
+    <script>
+    $(document).ready(function(){
+    var $cat = $('select[name=inputInventory]'),
+    $items = $('select[name=inputDevices]');
+
+    $cat.change(function(){
+
+        var $this = $(this).find(':selected'),
+        rel = $this.attr('rel');
+
+        // Hide all
+        $items.find("option").hide();
+
+        // Find all matching accessories
+        // Show all the correct accesories
+        // Select the first accesory
+        $set = $items.find('option.' + rel);
+        $set.show().first().prop('selected', true);
+
+    });
+});
+
+function myFunction() {
+    document.getElementById('inputDevices').style.display='block';
+}
+
+
+    document.getElementById('inputType').addEventListener('change', function() {
+            if (this.value == 'enable_ospf') {
+                document.getElementById('inputProcessID').readOnly = false;
+                document.getElementById('inputNetworkIP').readOnly = false;
+                document.getElementById('inputWildcardMask').readOnly = false;
+                document.getElementById('inputAreaID').readOnly = false;
+                document.getElementById('inputCostValue').readOnly = true;
+                document.getElementById('inputInterface').readOnly = true;
+                document.getElementById('inputRoutesType').disabled = true;
+                document.getElementById('inputDistanceValue').readOnly = true;
+                document.getElementById('inputSeconds').readOnly = true;
+                document.getElementById('inputSPFStart').readOnly = true;
+                document.getElementById('inputSPFHold').readOnly = true;
+                document.getElementById('inputSPFMaxwait').readOnly = true;
+                document.getElementById('inputRefBW').readOnly = true;
+                document.getElementById('inputIntCostValue').readOnly = true;
+                document.getElementById('inputTransmitSeconds').readOnly = true;
+                document.getElementById('inputRetransmitSeconds').readOnly = true;
+                document.getElementById('inputPriority').readOnly = true;
+                document.getElementById('inputHelloInterval').readOnly = true;
+                document.getElementById('inputDeadInterval').readOnly = true;
+                document.getElementById('inputAuthKey').readOnly = true;
+                document.getElementById('inputKeyID').readOnly = true;
+                document.getElementById('inputMD5Key').readOnly = true;
+                document.getElementById('inputAuthenticationOption').readOnly = true;
+                document.getElementById('inputAuthenticationOption1').disabled = true;
+                document.getElementById('inputAuthenticationOption2').disabled = true;
+                document.getElementById('inputNeighborIPs').readOnly = true;
+                document.getElementById('inputCostValues').readOnly = true;
+
+            } else if (this.value == 'area_parameters') {
+                document.getElementById('inputProcessID').readOnly = false;
+                document.getElementById('inputNetworkIP').readOnly = true;
+                document.getElementById('inputWildcardMask').readOnly = true;
+                document.getElementById('inputAreaID').readOnly = false;
+                document.getElementById('inputCostValue').readOnly = false;
+                document.getElementById('inputInterface').readOnly = true;
+                document.getElementById('inputRoutesType').disabled = true;
+                document.getElementById('inputDistanceValue').readOnly = true;
+                document.getElementById('inputSeconds').readOnly = true;
+                document.getElementById('inputSPFStart').readOnly = true;
+                document.getElementById('inputSPFHold').readOnly = true;
+                document.getElementById('inputSPFMaxwait').readOnly = true;
+                document.getElementById('inputRefBW').readOnly = true;
+                document.getElementById('inputIntCostValue').readOnly = true;
+                document.getElementById('inputTransmitSeconds').readOnly = true;
+                document.getElementById('inputRetransmitSeconds').readOnly = true;
+                document.getElementById('inputPriority').readOnly = true;
+                document.getElementById('inputHelloInterval').readOnly = true;
+                document.getElementById('inputDeadInterval').readOnly = true;
+                document.getElementById('inputAuthKey').readOnly = true;
+                document.getElementById('inputKeyID').readOnly = true;
+                document.getElementById('inputMD5Key').readOnly = true;
+                document.getElementById('inputAuthenticationOption').readOnly = true;
+                document.getElementById('inputAuthenticationOption1').disabled = true;
+                document.getElementById('inputAuthenticationOption2').disabled = true;
+                document.getElementById('inputNeighborIPs').readOnly = true;
+                document.getElementById('inputCostValues').readOnly = true;
+                }
+            else if (this.value == 'blocking_ospf_lsa_flooding') {
+                document.getElementById('inputProcessID').readOnly = true;
+                document.getElementById('inputNetworkIP').readOnly = true;
+                document.getElementById('inputWildcardMask').readOnly = true;
+                document.getElementById('inputAreaID').readOnly = true;
+                document.getElementById('inputCostValue').readOnly = true;
+                document.getElementById('inputInterface').readOnly = false;
+                document.getElementById('inputRoutesType').disabled = true;
+                document.getElementById('inputDistanceValue').readOnly = true;
+                document.getElementById('inputSeconds').readOnly = true;
+                document.getElementById('inputSPFStart').readOnly = true;
+                document.getElementById('inputSPFHold').readOnly = true;
+                document.getElementById('inputSPFMaxwait').readOnly = true;
+                document.getElementById('inputRefBW').readOnly = true;
+                document.getElementById('inputIntCostValue').readOnly = true;
+                document.getElementById('inputTransmitSeconds').readOnly = true;
+                document.getElementById('inputRetransmitSeconds').readOnly = true;
+                document.getElementById('inputPriority').readOnly = true;
+                document.getElementById('inputHelloInterval').readOnly = true;
+                document.getElementById('inputDeadInterval').readOnly = true;
+                document.getElementById('inputAuthKey').readOnly = true;
+                document.getElementById('inputKeyID').readOnly = true;
+                document.getElementById('inputMD5Key').readOnly = true;
+                document.getElementById('inputAuthenticationOption').readOnly = true;
+                document.getElementById('inputAuthenticationOption1').disabled = true;
+                document.getElementById('inputAuthenticationOption2').disabled = true;
+                document.getElementById('inputNeighborIPs').readOnly = true;
+                document.getElementById('inputCostValues').readOnly = true;
+                }
+            else if (this.value == 'blocking_ospf_lsa_flooding_point_to_multipoint') {
+                document.getElementById('inputProcessID').readOnly = false;
+                document.getElementById('inputNetworkIP').readOnly = true;
+                document.getElementById('inputWildcardMask').readOnly = true;
+                document.getElementById('inputAreaID').readOnly = true;
+                document.getElementById('inputCostValue').readOnly = true;
+                document.getElementById('inputInterface').readOnly = true;
+                document.getElementById('inputNeighborIP').readOnly = false;
+                document.getElementById('inputRoutesType').disabled = true;
+                document.getElementById('inputDistanceValue').readOnly = true;
+                document.getElementById('inputSeconds').readOnly = true;
+                document.getElementById('inputSPFStart').readOnly = true;
+                document.getElementById('inputSPFHold').readOnly = true;
+                document.getElementById('inputSPFMaxwait').readOnly = true;
+                document.getElementById('inputRefBW').readOnly = true;
+                document.getElementById('inputIntCostValue').readOnly = true;
+                document.getElementById('inputTransmitSeconds').readOnly = true;
+                document.getElementById('inputRetransmitSeconds').readOnly = true;
+                document.getElementById('inputPriority').readOnly = true;
+                document.getElementById('inputHelloInterval').readOnly = true;
+                document.getElementById('inputDeadInterval').readOnly = true;
+                document.getElementById('inputAuthKey').readOnly = true;
+                document.getElementById('inputKeyID').readOnly = true;
+                document.getElementById('inputMD5Key').readOnly = true;
+                document.getElementById('inputAuthenticationOption').readOnly = true;
+                document.getElementById('inputAuthenticationOption1').disabled = true;
+                document.getElementById('inputAuthenticationOption2').disabled = true;
+                document.getElementById('inputNeighborIPs').readOnly = true;
+                document.getElementById('inputCostValues').readOnly = true;
+                }
+            else if (this.value == 'changing_ospf_administrative_distances') {
+                document.getElementById('inputProcessID').readOnly = false;
+                document.getElementById('inputNetworkIP').readOnly = true;
+                document.getElementById('inputWildcardMask').readOnly = true;
+                document.getElementById('inputAreaID').readOnly = true;
+                document.getElementById('inputCostValue').readOnly = true;
+                document.getElementById('inputInterface').readOnly = true;
+                document.getElementById('inputNeighborIP').readOnly = true;
+                document.getElementById('inputRoutesType').disabled = false;
+                document.getElementById('inputDistanceValue').readOnly = false;
+                document.getElementById('inputSeconds').readOnly = true;
+                document.getElementById('inputSPFStart').readOnly = true;
+                document.getElementById('inputSPFHold').readOnly = true;
+                document.getElementById('inputSPFMaxwait').readOnly = true;
+                document.getElementById('inputRefBW').readOnly = true;
+                document.getElementById('inputIntCostValue').readOnly = true;
+                document.getElementById('inputTransmitSeconds').readOnly = true;
+                document.getElementById('inputRetransmitSeconds').readOnly = true;
+                document.getElementById('inputPriority').readOnly = true;
+                document.getElementById('inputHelloInterval').readOnly = true;
+                document.getElementById('inputDeadInterval').readOnly = true;
+                document.getElementById('inputAuthKey').readOnly = true;
+                document.getElementById('inputKeyID').readOnly = true;
+                document.getElementById('inputMD5Key').readOnly = true;
+                document.getElementById('inputAuthenticationOption').readOnly = true;
+                document.getElementById('inputAuthenticationOption1').disabled = true;
+                document.getElementById('inputAuthenticationOption2').disabled = true;
+                document.getElementById('inputNeighborIPs').readOnly = true;
+                document.getElementById('inputCostValues').readOnly = true;
+                }
+            else if (this.value == 'changing_the_lsa_group_pacing_interval') {
+                document.getElementById('inputProcessID').readOnly = false;
+                document.getElementById('inputNetworkIP').readOnly = true;
+                document.getElementById('inputWildcardMask').readOnly = true;
+                document.getElementById('inputAreaID').readOnly = true;
+                document.getElementById('inputCostValue').readOnly = true;
+                document.getElementById('inputInterface').readOnly = true;
+                document.getElementById('inputNeighborIP').readOnly = true;
+                document.getElementById('inputRoutesType').disabled = true;
+                document.getElementById('inputDistanceValue').readOnly = true;
+                document.getElementById('inputSeconds').readOnly = false;
+                document.getElementById('inputSPFStart').readOnly = true;
+                document.getElementById('inputSPFHold').readOnly = true;
+                document.getElementById('inputSPFMaxwait').readOnly = true;
+                document.getElementById('inputRefBW').readOnly = true;
+                document.getElementById('inputIntCostValue').readOnly = true;
+                document.getElementById('inputTransmitSeconds').readOnly = true;
+                document.getElementById('inputRetransmitSeconds').readOnly = true;
+                document.getElementById('inputPriority').readOnly = true;
+                document.getElementById('inputHelloInterval').readOnly = true;
+                document.getElementById('inputDeadInterval').readOnly = true;
+                document.getElementById('inputAuthKey').readOnly = true;
+                document.getElementById('inputKeyID').readOnly = true;
+                document.getElementById('inputMD5Key').readOnly = true;
+                document.getElementById('inputAuthenticationOption').readOnly = true;
+                document.getElementById('inputAuthenticationOption1').disabled = true;
+                document.getElementById('inputAuthenticationOption2').disabled = true;
+                document.getElementById('inputNeighborIPs').readOnly = true;
+                document.getElementById('inputCostValues').readOnly = true;
+                }
+            else if (this.value == 'configure_lookup_of_dns_names') {
+                document.getElementById('inputProcessID').readOnly = true;
+                document.getElementById('inputNetworkIP').readOnly = true;
+                document.getElementById('inputWildcardMask').readOnly = true;
+                document.getElementById('inputAreaID').readOnly = true;
+                document.getElementById('inputCostValue').readOnly = true;
+                document.getElementById('inputInterface').readOnly = true;
+                document.getElementById('inputNeighborIP').readOnly = true;
+                document.getElementById('inputRoutesType').disabled = true;
+                document.getElementById('inputDistanceValue').readOnly = true;
+                document.getElementById('inputSeconds').readOnly = true;
+                document.getElementById('inputSPFStart').readOnly = true;
+                document.getElementById('inputSPFHold').readOnly = true;
+                document.getElementById('inputSPFMaxwait').readOnly = true;
+                document.getElementById('inputRefBW').readOnly = true;
+                document.getElementById('inputIntCostValue').readOnly = true;
+                document.getElementById('inputTransmitSeconds').readOnly = true;
+                document.getElementById('inputRetransmitSeconds').readOnly = true;
+                document.getElementById('inputPriority').readOnly = true;
+                document.getElementById('inputHelloInterval').readOnly = true;
+                document.getElementById('inputDeadInterval').readOnly = true;
+                document.getElementById('inputAuthKey').readOnly = true;
+                document.getElementById('inputKeyID').readOnly = true;
+                document.getElementById('inputMD5Key').readOnly = true;
+                document.getElementById('inputAuthenticationOption').readOnly = true;
+                document.getElementById('inputAuthenticationOption1').disabled = true;
+                document.getElementById('inputAuthenticationOption2').disabled = true;
+                document.getElementById('inputNeighborIPs').readOnly = true;
+                document.getElementById('inputCostValues').readOnly = true;
+                }
+            else if (this.value == 'configure_ospf_over_on_demand_circuits') {
+                document.getElementById('inputProcessID').readOnly = false;
+                document.getElementById('inputNetworkIP').readOnly = true;
+                document.getElementById('inputWildcardMask').readOnly = true;
+                document.getElementById('inputAreaID').readOnly = true;
+                document.getElementById('inputCostValue').readOnly = true;
+                document.getElementById('inputInterface').readOnly = false;
+                document.getElementById('inputNeighborIP').readOnly = true;
+                document.getElementById('inputRoutesType').disabled = true;
+                document.getElementById('inputDistanceValue').readOnly = true;
+                document.getElementById('inputSeconds').readOnly = true;
+                document.getElementById('inputSPFStart').readOnly = true;
+                document.getElementById('inputSPFHold').readOnly = true;
+                document.getElementById('inputSPFMaxwait').readOnly = true;
+                document.getElementById('inputRefBW').readOnly = true;
+                document.getElementById('inputIntCostValue').readOnly = true;
+                document.getElementById('inputTransmitSeconds').readOnly = true;
+                document.getElementById('inputRetransmitSeconds').readOnly = true;
+                document.getElementById('inputPriority').readOnly = true;
+                document.getElementById('inputHelloInterval').readOnly = true;
+                document.getElementById('inputDeadInterval').readOnly = true;
+                document.getElementById('inputAuthKey').readOnly = true;
+                document.getElementById('inputKeyID').readOnly = true;
+                document.getElementById('inputMD5Key').readOnly = true;
+                document.getElementById('inputAuthenticationOption').readOnly = true;
+                document.getElementById('inputAuthenticationOption1').disabled = true;
+                document.getElementById('inputAuthenticationOption2').disabled = true;
+                document.getElementById('inputNeighborIPs').readOnly = true;
+                document.getElementById('inputCostValues').readOnly = true;
+                }
+            else if (this.value == 'configure_route_calculation_timers') {
+                document.getElementById('inputProcessID').readOnly = false;
+                document.getElementById('inputNetworkIP').readOnly = true;
+                document.getElementById('inputWildcardMask').readOnly = true;
+                document.getElementById('inputAreaID').readOnly = true;
+                document.getElementById('inputCostValue').readOnly = true;
+                document.getElementById('inputInterface').readOnly = true;
+                document.getElementById('inputNeighborIP').readOnly = true;
+                document.getElementById('inputRoutesType').disabled = true;
+                document.getElementById('inputDistanceValue').readOnly = true;
+                document.getElementById('inputSeconds').readOnly = true;
+                document.getElementById('inputSPFStart').readOnly = false;
+                document.getElementById('inputSPFHold').readOnly = false;
+                document.getElementById('inputSPFMaxwait').readOnly = false;
+                document.getElementById('inputRefBW').readOnly = true;
+                document.getElementById('inputIntCostValue').readOnly = true;
+                document.getElementById('inputTransmitSeconds').readOnly = true;
+                document.getElementById('inputRetransmitSeconds').readOnly = true;
+                document.getElementById('inputPriority').readOnly = true;
+                document.getElementById('inputHelloInterval').readOnly = true;
+                document.getElementById('inputDeadInterval').readOnly = true;
+                document.getElementById('inputAuthKey').readOnly = true;
+                document.getElementById('inputKeyID').readOnly = true;
+                document.getElementById('inputMD5Key').readOnly = true;
+                document.getElementById('inputAuthenticationOption').readOnly = true;
+                document.getElementById('inputAuthenticationOption1').disabled = true;
+                document.getElementById('inputAuthenticationOption2').disabled = true;
+                document.getElementById('inputNeighborIPs').readOnly = true;
+                document.getElementById('inputCostValues').readOnly = true;
+                }
+        else if (this.value == 'controlling_default_metrics') {
+                document.getElementById('inputProcessID').readOnly = false;
+                document.getElementById('inputNetworkIP').readOnly = true;
+                document.getElementById('inputWildcardMask').readOnly = true;
+                document.getElementById('inputAreaID').readOnly = true;
+                document.getElementById('inputCostValue').readOnly = true;
+                document.getElementById('inputInterface').readOnly = true;
+                document.getElementById('inputNeighborIP').readOnly = true;
+                document.getElementById('inputRoutesType').disabled = true;
+                document.getElementById('inputDistanceValue').readOnly = true;
+                document.getElementById('inputSeconds').readOnly = true;
+                document.getElementById('inputSPFStart').readOnly = true;
+                document.getElementById('inputSPFHold').readOnly = true;
+                document.getElementById('inputSPFMaxwait').readOnly = true;
+                document.getElementById('inputRefBW').readOnly = false;
+                document.getElementById('inputIntCostValue').readOnly = true;
+                document.getElementById('inputTransmitSeconds').readOnly = true;
+                document.getElementById('inputRetransmitSeconds').readOnly = true;
+                document.getElementById('inputPriority').readOnly = true;
+                document.getElementById('inputHelloInterval').readOnly = true;
+                document.getElementById('inputDeadInterval').readOnly = true;
+                document.getElementById('inputAuthKey').readOnly = true;
+                document.getElementById('inputKeyID').readOnly = true;
+                document.getElementById('inputMD5Key').readOnly = true;
+                document.getElementById('inputAuthenticationOption').readOnly = true;
+                document.getElementById('inputAuthenticationOption1').disabled = true;
+                document.getElementById('inputAuthenticationOption2').disabled = true;
+                document.getElementById('inputNeighborIPs').readOnly = true;
+                document.getElementById('inputCostValues').readOnly = true;
+                }
+        else if (this.value == 'generating_default_route' || this.value == 'rfc_1587') {
+                document.getElementById('inputProcessID').readOnly = false;
+                document.getElementById('inputNetworkIP').readOnly = true;
+                document.getElementById('inputWildcardMask').readOnly = true;
+                document.getElementById('inputAreaID').readOnly = true;
+                document.getElementById('inputCostValue').readOnly = true;
+                document.getElementById('inputInterface').readOnly = true;
+                document.getElementById('inputNeighborIP').readOnly = true;
+                document.getElementById('inputRoutesType').disabled = true;
+                document.getElementById('inputDistanceValue').readOnly = true;
+                document.getElementById('inputSeconds').readOnly = true;
+                document.getElementById('inputSPFStart').readOnly = true;
+                document.getElementById('inputSPFHold').readOnly = true;
+                document.getElementById('inputSPFMaxwait').readOnly = true;
+                document.getElementById('inputRefBW').readOnly = true;
+                document.getElementById('inputIntCostValue').readOnly = true;
+                document.getElementById('inputTransmitSeconds').readOnly = true;
+                document.getElementById('inputRetransmitSeconds').readOnly = true;
+                document.getElementById('inputPriority').readOnly = true;
+                document.getElementById('inputHelloInterval').readOnly = true;
+                document.getElementById('inputDeadInterval').readOnly = true;
+                document.getElementById('inputAuthKey').readOnly = true;
+                document.getElementById('inputKeyID').readOnly = true;
+                document.getElementById('inputMD5Key').readOnly = true;
+                document.getElementById('inputAuthenticationOption').readOnly = true;
+                document.getElementById('inputAuthenticationOption1').disabled = true;
+                document.getElementById('inputAuthenticationOption2').disabled = true;
+                document.getElementById('inputNeighborIPs').readOnly = true;
+                document.getElementById('inputCostValues').readOnly = true;
+                }
+        else if (this.value == 'interface_parameters') {
+                document.getElementById('inputProcessID').readOnly = true;
+                document.getElementById('inputNetworkIP').readOnly = true;
+                document.getElementById('inputWildcardMask').readOnly = true;
+                document.getElementById('inputAreaID').readOnly = true;
+                document.getElementById('inputCostValue').readOnly = true;
+                document.getElementById('inputInterface').readOnly = false;
+                document.getElementById('inputNeighborIP').readOnly = true;
+                document.getElementById('inputRoutesType').disabled = true;
+                document.getElementById('inputDistanceValue').readOnly = true;
+                document.getElementById('inputSeconds').readOnly = true;
+                document.getElementById('inputSPFStart').readOnly = true;
+                document.getElementById('inputSPFHold').readOnly = true;
+                document.getElementById('inputSPFMaxwait').readOnly = true;
+                document.getElementById('inputRefBW').readOnly = true;
+                document.getElementById('inputIntCostValue').readOnly = false;
+                document.getElementById('inputTransmitSeconds').readOnly = false;
+                document.getElementById('inputRetransmitSeconds').readOnly = false;
+                document.getElementById('inputPriority').readOnly = false;
+                document.getElementById('inputHelloInterval').readOnly = false;
+                document.getElementById('inputDeadInterval').readOnly = false;
+                document.getElementById('inputAuthKey').readOnly = false;
+                document.getElementById('inputKeyID').readOnly = false;
+                document.getElementById('inputMD5Key').readOnly = false;
+                document.getElementById('inputAuthenticationOption').readOnly = false;
+                document.getElementById('inputAuthenticationOption1').disabled = false;
+                document.getElementById('inputAuthenticationOption2').disabled = false;
+                document.getElementById('inputNeighborIPs').readOnly = true;
+                document.getElementById('inputCostValues').readOnly = true;
+                }
+        else if (this.value == 'nssa_abr_as_a_forced_nssa_translator') {
+                document.getElementById('inputProcessID').readOnly = false;
+                document.getElementById('inputNetworkIP').readOnly = true;
+                document.getElementById('inputWildcardMask').readOnly = true;
+                document.getElementById('inputAreaID').readOnly = false;
+                document.getElementById('inputCostValue').readOnly = true;
+                document.getElementById('inputInterface').readOnly = true;
+                document.getElementById('inputNeighborIP').readOnly = true;
+                document.getElementById('inputRoutesType').disabled = true;
+                document.getElementById('inputDistanceValue').readOnly = true;
+                document.getElementById('inputSeconds').readOnly = true;
+                document.getElementById('inputSPFStart').readOnly = true;
+                document.getElementById('inputSPFHold').readOnly = true;
+                document.getElementById('inputSPFMaxwait').readOnly = true;
+                document.getElementById('inputRefBW').readOnly = true;
+                document.getElementById('inputIntCostValue').readOnly = true;
+                document.getElementById('inputTransmitSeconds').readOnly = true;
+                document.getElementById('inputRetransmitSeconds').readOnly = true;
+                document.getElementById('inputPriority').readOnly = true;
+                document.getElementById('inputHelloInterval').readOnly = true;
+                document.getElementById('inputDeadInterval').readOnly = true;
+                document.getElementById('inputAuthKey').readOnly = true;
+                document.getElementById('inputKeyID').readOnly = true;
+                document.getElementById('inputMD5Key').readOnly = true;
+                document.getElementById('inputAuthenticationOption').readOnly = true;
+                document.getElementById('inputAuthenticationOption1').disabled = true;
+                document.getElementById('inputAuthenticationOption2').disabled = true;
+                document.getElementById('inputNeighborIPs').readOnly = true;
+                document.getElementById('inputCostValues').readOnly = true;
+                }
+        else if (this.value == 'point_to_multipoint_broadcast' || this.value == 'point_to_multipoint_nonbroadcast') {
+                document.getElementById('inputProcessID').readOnly = false;
+                document.getElementById('inputNetworkIP').readOnly = true;
+                document.getElementById('inputWildcardMask').readOnly = true;
+                document.getElementById('inputAreaID').readOnly = true;
+                document.getElementById('inputCostValue').readOnly = true;
+                document.getElementById('inputInterface').readOnly = false;
+                document.getElementById('inputNeighborIP').readOnly = true;
+                document.getElementById('inputRoutesType').disabled = true;
+                document.getElementById('inputDistanceValue').readOnly = true;
+                document.getElementById('inputSeconds').readOnly = true;
+                document.getElementById('inputSPFStart').readOnly = true;
+                document.getElementById('inputSPFHold').readOnly = true;
+                document.getElementById('inputSPFMaxwait').readOnly = true;
+                document.getElementById('inputRefBW').readOnly = true;
+                document.getElementById('inputIntCostValue').readOnly = true;
+                document.getElementById('inputTransmitSeconds').readOnly = true;
+                document.getElementById('inputRetransmitSeconds').readOnly = true;
+                document.getElementById('inputPriority').readOnly = true;
+                document.getElementById('inputHelloInterval').readOnly = true;
+                document.getElementById('inputDeadInterval').readOnly = true;
+                document.getElementById('inputAuthKey').readOnly = true;
+                document.getElementById('inputKeyID').readOnly = true;
+                document.getElementById('inputMD5Key').readOnly = true;
+                document.getElementById('inputAuthenticationOption').readOnly = true;
+                document.getElementById('inputAuthenticationOption1').disabled = true;
+                document.getElementById('inputAuthenticationOption2').disabled = true;
+                document.getElementById('inputNeighborIPs').readOnly = false;
+                document.getElementById('inputCostValues').readOnly = false;
+                }
+        else if (this.value == 'reducing_lsa_flooding') {
+                document.getElementById('inputProcessID').readOnly = true;
+                document.getElementById('inputNetworkIP').readOnly = true;
+                document.getElementById('inputWildcardMask').readOnly = true;
+                document.getElementById('inputAreaID').readOnly = true;
+                document.getElementById('inputCostValue').readOnly = true;
+                document.getElementById('inputInterface').readOnly = false;
+                document.getElementById('inputNeighborIP').readOnly = true;
+                document.getElementById('inputRoutesType').disabled = true;
+                document.getElementById('inputDistanceValue').readOnly = true;
+                document.getElementById('inputSeconds').readOnly = true;
+                document.getElementById('inputSPFStart').readOnly = true;
+                document.getElementById('inputSPFHold').readOnly = true;
+                document.getElementById('inputSPFMaxwait').readOnly = true;
+                document.getElementById('inputRefBW').readOnly = true;
+                document.getElementById('inputIntCostValue').readOnly = true;
+                document.getElementById('inputTransmitSeconds').readOnly = true;
+                document.getElementById('inputRetransmitSeconds').readOnly = true;
+                document.getElementById('inputPriority').readOnly = true;
+                document.getElementById('inputHelloInterval').readOnly = true;
+                document.getElementById('inputDeadInterval').readOnly = true;
+                document.getElementById('inputAuthKey').readOnly = true;
+                document.getElementById('inputKeyID').readOnly = true;
+                document.getElementById('inputMD5Key').readOnly = true;
+                document.getElementById('inputAuthenticationOption').readOnly = true;
+                document.getElementById('inputAuthenticationOption1').disabled = true;
+                document.getElementById('inputAuthenticationOption2').disabled = true;
+                document.getElementById('inputNeighborIPs').readOnly = true;
+                document.getElementById('inputCostValues').readOnly = true;
+                }
+
+            })
+
+    </script>
+
+  {% endblock body %}

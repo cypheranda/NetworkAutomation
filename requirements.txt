@@ -8,3 +8,5 @@ Flask_User
 netmiko
 requests
 napalm
+# de instalat
+# ansible-galaxy collection install cisco.ios
