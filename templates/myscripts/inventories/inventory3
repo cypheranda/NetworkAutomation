@@ -1,0 +1,14 @@
+[switchess]
+SW1 ansible_host=192.168.122.18
+
+[switchess:vars]
+ansible_network_os=ios
+ansible_user=anda
+ansible_password=$5$rounds=535000$ECAqCUeHh18Z0hfG$ieLNiNYv84EWbfTnOoY8tJ9GAN05ZhdY4p6eZYMn4P8
+ansible_ssh_pass=$5$rounds=535000$ECAqCUeHh18Z0hfG$ieLNiNYv84EWbfTnOoY8tJ9GAN05ZhdY4p6eZYMn4P8
+ansible_become=yes
+ansible_become_method=enable
+ansible_become_password=$5$rounds=535000$9QBEdvXmhy93g5pB$W5DEmrVBy0tRT4XMdYL/6zxoy5cbHInKjLAq7pTbnh8
+ansible_connection=network_cli
+ansible_python_interpreter=/usr/bin/python3
+

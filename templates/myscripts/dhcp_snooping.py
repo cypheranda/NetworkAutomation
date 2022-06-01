@@ -9,13 +9,14 @@ import time
 from napalm import get_network_driver
 
 
-def dhcp_snooping(tmp_file, all_interfaces, VLANS_RANGE, DHCP_TRUSTED_INTERFACES, UNTRUSTED_LIMITS):
+def dhcp_snooping(tmp_file, all_interfaces, VLANS_RANGE, DHCP_TRUSTED_INTERFACES, UNTRUSTED_LIMIT):
     fout = open(tmp_file, "wt")
 
     # conf dhcp snooping vlans and trusted interface
 
     fout.write('ip dhcp snooping\n')
     fout.write('ip dhcp snooping vlan ' + VLANS_RANGE + '\n')
+
     for DHCP_TRUSTED_INTERFACE in DHCP_TRUSTED_INTERFACES:
         fout.write('interface ' + DHCP_TRUSTED_INTERFACE + '\n')
         fout.write(' ip dhcp snooping trust\n')
@@ -30,33 +31,34 @@ def dhcp_snooping(tmp_file, all_interfaces, VLANS_RANGE, DHCP_TRUSTED_INTERFACES
         if interface != DHCP_TRUSTED_INTERFACE:
             if 'Ethernet' in interface:
                 fout.write('interface ' + interface + '\n')
-                fout.write(' ip dhcp snooping limit rate ' + str(UNTRUSTED_LIMITS[index]) + '\n')
+                fout.write(' ip dhcp snooping limit rate ' + UNTRUSTED_LIMIT + '\n')
                 fout.write(' exit\n')
                 index += 1
 
     fout.close()
 
 
-def do_dhcp_snooping(devices, os_type, username, password, enable, VLANS_RANGE, DHCP_TRUSTED_INTERFACES, UNTRUSTED_LIMITS):
+def do_dhcp_snooping(devices, os_type, username, password, enable, VLANS_RANGE, DHCP_TRUSTED_INTERFACES, UNTRUSTED_LIMIT):
     # configuration parameters
     # DHCP_TRUSTED_INTERFACES = 'GigabitEthernet0/0, ...'
     # VLANS_RANGE = '1,4,5'
-    # UNTRUSTED_LIMITS = [2, 4, 6, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]  # pt fiecare interfata
+    # UNTRUSTED_LIMITS = 2 # pt fiecare interfata
 
     if os_type == 'cisco_ios':
         os_type = 'ios'
 
     for ip in devices:
-        driver = get_network_driver(os_type)
-
-        optional_args = {'secret': enable, 'global_delay_factor': 2}
-        ios = driver(ip, username, password, optional_args=optional_args)
-        ios.open()
-
-        # create a temporary file to create the config
-        tmp_file = str(uuid.uuid4())
         try:
-            dhcp_snooping(tmp_file, ios.get_interfaces(), devices, os_type, username, password, enable, VLANS_RANGE, DHCP_TRUSTED_INTERFACES, UNTRUSTED_LIMITS)
+            driver = get_network_driver(os_type)
+
+            optional_args = {'secret': enable, 'global_delay_factor': 2}
+            ios = driver(ip, username, password, optional_args=optional_args)
+            ios.open()
+
+            # create a temporary file to create the config
+            tmp_file = str(uuid.uuid4())
+
+            dhcp_snooping(tmp_file, ios.get_interfaces(), devices, os_type, username, password, enable, VLANS_RANGE, DHCP_TRUSTED_INTERFACES, UNTRUSTED_LIMIT)
             ios.load_merge_candidate(tmp_file)
             ios.commit_config()
         except ConnectionRefusedError as err:

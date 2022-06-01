@@ -1,0 +1,14 @@
+[switches]
+R1 ansible_host=192.168.122.16
+
+[switches:vars]
+ansible_network_os=ios
+ansible_user=admin
+ansible_password=$5$rounds=535000$ma0lcoRY3zUHNRqo$xZCP.77jk/nH1UVijz3QFRA3/.NlaH8N6o2udcWD0U4
+ansible_ssh_pass=$5$rounds=535000$ma0lcoRY3zUHNRqo$xZCP.77jk/nH1UVijz3QFRA3/.NlaH8N6o2udcWD0U4
+ansible_become=yes
+ansible_become_method=enable
+ansible_become_password=$5$rounds=535000$pgGa2.FHOC1uyPtN$yFXw1kk.xhOxhm/bOsZbLJTOfqeWED/caXwFKEmJldD
+ansible_connection=network_cli
+ansible_python_interpreter=/usr/bin/python3
+

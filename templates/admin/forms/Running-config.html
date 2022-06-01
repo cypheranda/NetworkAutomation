@@ -11,24 +11,24 @@
       <br><br><br>
   </h1>
 </section>
-    <form name="myForm" id="myForm" method="post" style="text-indent: 40px">
+    <form method="post" style="text-indent: 40px">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <div class="form-group row">
             <label for="inputUsername" class="col-sm-2 col-form-label">Username</label>
             <div class="col-sm-10">
-              <input type="text" required class="form-control" name="inputUsername" placeholder="Username" value="{{ request.form['inputUsername'] }}"></input>
+              <input type="text" class="form-control" name="inputUsername" id="inputUsername" placeholder="Username" value="{{ request.form['inputUsername'] }}"></input>
             </div>
           </div>
         <div class="form-group row">
             <label for="inputPassword" class="col-sm-2 col-form-label">Password</label>
             <div class="col-sm-10">
-              <input type="password" required class="form-control" name="inputPassword" placeholder="Password" value="{{ request.form['inputPassword'] }}"></input>
+              <input type="password" class="form-control" name="inputPassword" id="inputPassword" placeholder="Password" value="{{ request.form['inputPassword'] }}"></input>
             </div>
           </div>
             <div class="form-group row">
             <label for="inputEnablePassword" class="col-sm-2 col-form-label">Enable password</label>
             <div class="col-sm-10">
-              <input type="password" required class="form-control" name="inputEnablePassword" placeholder="Enable password" value="{{ request.form['inputEnablePassword'] }}"></input>
+              <input type="password" class="form-control" name="inputEnablePassword" id="inputEnablePassword" placeholder="Enable password" value="{{ request.form['inputEnablePassword'] }}"></input>
             </div>
           </div>
           <div class="form-group row">
@@ -55,37 +55,35 @@
                   </select>
             </div>
           </div>
-    <div class="form-group row">
-            <label for="inputVLANs" class="col-sm-2 col-form-label">VLANs</label>
-            <div class="col-sm-10">
-              <input type="text" class="form-control" name="inputVLANs" id="inputVLANs" placeholder="Please enter the VLANs separated only by one comma or this will generate errors." value="{{ request.form['inputVLANs'] }}"></input>
-            </div>
-          </div>
-    <div class="form-group row">
-            <label for="inputTrustedInterfaces" class="col-sm-2 col-form-label">Trusted interface</label>
-            <div class="col-sm-10">
-              <input type="text" class="form-control inputTrustedInterfaces" name="inputTrustedInterfaces" id="inputTrustedInterfaces" placeholder="Common trusted interfaces, separated by commas" value="{{ request.form['inputTrustedInterfaces'] }}"></input>
-            </div>
-          </div>
-    <div class="form-group row">
-            <label for="inputUntrustedLimit" class="col-sm-2 col-form-label">Untrusted interfaces rate limit</label>
-            <div class="col-sm-10">
-              <input type="number" required class="form-control" name="inputUntrustedLimit" id="inputUntrustedLimit" min="1" max="2048" placeholder="1-2048" value="{{ request.form['inputUntrustedLimit'] }}"></input>
-            </div>
-    </div>
-    <div class="form-check">
-      <input class="form-check-input" type="checkbox" value="" name="defaultCheck" id="defaultCheck" required>
-      <label class="form-check-label" for="defaultCheck">
-        Please note that this configuration will be automatically saved to device startup-configuration
-      </label>
-      <br><br>
-    </div>
                       <div class="form-group row">
             <div class="col-sm-10">
-              <button type="submit" class="btn btn-primary">Submit</button>
+
+                <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#myOutput" onclick="getStatus()">Output</button>
+
             </div>
           </div>
     </form>
+    <!-- Modal -->
+  <div class="modal fade" id="myOutput" role="dialog">
+    <div class="modal-dialog">
+
+      <!-- Modal content-->
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <h4 class="modal-title">Modal Header</h4>
+        </div>
+        <div class="modal-body">
+          <div id="test"></div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
 {% endblock %}
   {% endif %}
     <script>
@@ -114,6 +112,26 @@ function myFunction() {
     document.getElementById('inputDevices').style.display='block';
 }
 
+function getStatus()
+{
+    {#get form data first#}
+    var username = document.getElementById("inputUsername").value;
+    var password = document.getElementById("inputPassword").value;
+    var enable = document.getElementById("inputEnablePassword").value;
+    var inventory = document.getElementById("inputInventory").value;
+    var devices = document.getElementById("inputDevices").value;
+    var url = "/fetch_config";
+    var xmlHttp = new XMLHttpRequest();
+    var params = 'username=' + username +'&password=' + password +'&enable=' + enable + '&inventory=' + inventory + '&devices=' + devices
+    xmlHttp.open( "POST", url, false );
+    xmlHttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    xmlHttp.onreadystatechange = function() { // Call a function when the state changes.
+    if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
+        document.getElementById('test').textContent = xmlHttp.responseText;
+    }
+}
+    xmlHttp.send( params );
+}
     </script>
 
   {% endblock body %}
