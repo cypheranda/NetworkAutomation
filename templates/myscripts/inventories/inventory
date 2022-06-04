@@ -1,14 +1,29 @@
+[working]
+R20 ansible_host=192.168.204.136 src_file=running-config dest_file=R20.config
+R2 ansible_host=192.168.122.17
+
+[working:vars]
+ansible_network_os=ios
+ansible_user=admin
+ansible_password=$5$rounds=535000$CbFFrVWmiMhSOGOm$Mz4nVumfmmTOE40oS89znNGxUUkJZ7YMdwx0x0VB/v1
+ansible_ssh_pass=$5$rounds=535000$CbFFrVWmiMhSOGOm$Mz4nVumfmmTOE40oS89znNGxUUkJZ7YMdwx0x0VB/v1
+ansible_become=yes
+ansible_become_method=enable
+ansible_become_password=$5$rounds=535000$4maAOskquHbmfhv7$US1xy/n6doIQIAYeJCNyzulzqPgxGBNceFPim2jWB2/
+ansible_connection=network_cli
+ansible_python_interpreter=/usr/bin/python3
+
 [switches]
-R1 ansible_host=192.168.122.16
+SW1 ansible_host=192.168.122.18
 
 [switches:vars]
 ansible_network_os=ios
-ansible_user=admin
-ansible_password=$5$rounds=535000$ma0lcoRY3zUHNRqo$xZCP.77jk/nH1UVijz3QFRA3/.NlaH8N6o2udcWD0U4
-ansible_ssh_pass=$5$rounds=535000$ma0lcoRY3zUHNRqo$xZCP.77jk/nH1UVijz3QFRA3/.NlaH8N6o2udcWD0U4
+ansible_user=anda.martiniuc
+ansible_password=$5$rounds=535000$BwwmaEu1TmNT0B67$tTXdK0AwdMT4d4ETVfqST14fX.fUKxGq9h3GZ6Gk.WA
+ansible_ssh_pass=$5$rounds=535000$BwwmaEu1TmNT0B67$tTXdK0AwdMT4d4ETVfqST14fX.fUKxGq9h3GZ6Gk.WA
 ansible_become=yes
 ansible_become_method=enable
-ansible_become_password=$5$rounds=535000$pgGa2.FHOC1uyPtN$yFXw1kk.xhOxhm/bOsZbLJTOfqeWED/caXwFKEmJldD
+ansible_become_password=$5$rounds=535000$Z6nr9QIg1F.rGvXw$6xFRKhp891IzuU8TcXMjLtXLuVXAvpHbAeGGZ0WzoLB
 ansible_connection=network_cli
 ansible_python_interpreter=/usr/bin/python3
 

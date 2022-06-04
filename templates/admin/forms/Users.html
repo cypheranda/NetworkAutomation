@@ -34,7 +34,7 @@
           <div class="form-group row">
             <label for="inputInventory" data-live-search="true" class="col-sm-2 col-form-label">Inventory</label>
             <div class="col-sm-10">
-                <select required="required" class="custom-select my-1 mr-sm-2" name="inputInventory" id="inputInventory" value="{{ request.form['inputInventory'] }}" onchange="myFunction()">
+                <select required="required" class="custom-select pull-left my-1 mr-sm-2" name="inputInventory" id="inputInventory" value="{{ request.form['inputInventory'] }}" onchange="myFunction()">
                     <option value="">Choose...</option>
                     {% for inventory in inventories %}
                         <option data-id={{ inventory.name }} rel={{ inventory.name }} value={{ inventory.name }}>{{ inventory.name }}</option>
@@ -58,7 +58,7 @@
     <div class="form-group row">
             <label for="inputUserType" data-live-search="true" class="col-sm-2 col-form-label">Choose the type of user feature you want to use</label>
             <div class="col-sm-10">
-                <select required="required" class="custom-select my-1 mr-sm-2" name="inputUserType" id="inputUserType" value="{{ request.form['inputUserType'] }}">
+                <select required="required" class="custom-select pull-left my-1 mr-sm-2" name="inputUserType" id="inputUserType" value="{{ request.form['inputUserType'] }}">
                     <option value="">Choose...</option>
                         <option value="create_new_user_password">Create a new user with a password/secret</option>
                     <option value="remove_all_users">Remove all users except admin</option>
@@ -77,7 +77,7 @@
     <div class="form-group row">
             <label for="inputPasswordType" data-live-search="true" class="col-sm-2 col-form-label">Choose the type of password you want to use</label>
             <div class="col-sm-10">
-                <select required="required" disabled class="custom-select my-1 mr-sm-2" name="inputPasswordType" id="inputPasswordType" value="{{ request.form['inputPasswordType'] }}">
+                <select required="required" disabled class="custom-select pull-left my-1 mr-sm-2" name="inputPasswordType" id="inputPasswordType" value="{{ request.form['inputPasswordType'] }}">
                     <option value="">Choose...</option>
                         <option value="password">Create a new user with a password</option>
                     <option value="secret">Create a new user with a secret</option>

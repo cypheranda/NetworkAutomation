@@ -34,7 +34,7 @@
           <div class="form-group row">
             <label for="inputInventory" data-live-search="true" class="col-sm-2 col-form-label">Inventory</label>
             <div class="col-sm-10">
-                <select required="required" class="custom-select my-1 mr-sm-2" name="inputInventory" id="inputInventory" value="{{ request.form['inputInventory'] }}" onchange="myFunction()">
+                <select required="required" class="custom-select pull-left my-1 mr-sm-2" name="inputInventory" id="inputInventory" value="{{ request.form['inputInventory'] }}" onchange="myFunction()">
                     <option value="">Choose...</option>
                     {% for inventory in inventories %}
                         <option data-id={{ inventory.name }} rel={{ inventory.name }} value={{ inventory.name }}>{{ inventory.name }}</option>
@@ -64,7 +64,7 @@
     <div class="form-group row">
             <label for="inputTimestamps" data-live-search="true" class="col-sm-2 col-form-label">Timestamps messages</label>
             <div class="col-sm-10">
-                <select required="required" class="custom-select my-1 mr-sm-2" name="inputTimestamps" id="inputTimestamps" value="{{ request.form['inputTimestamps'] }}">
+                <select required="required" class="custom-select pull-left my-1 mr-sm-2" name="inputTimestamps" id="inputTimestamps" value="{{ request.form['inputTimestamps'] }}">
                     <option value="">Choose...</option>
                         <option value="debug">Timestamp debug messages</option>
                     <option value="log">Timestamp log messages</option>
@@ -74,7 +74,7 @@
         <div class="form-group row">
             <label for="inputDatetime" data-live-search="true" class="col-sm-2 col-form-label">Timestamp with date and time</label>
             <div class="col-sm-10">
-                <select required="required" class="custom-select my-1 mr-sm-2" name="inputDatetime" id="inputDatetime" value="{{ request.form['inputDatetime'] }}">
+                <select required="required" class="custom-select pull-left my-1 mr-sm-2" name="inputDatetime" id="inputDatetime" value="{{ request.form['inputDatetime'] }}">
                     <option value="">Choose...</option>
                         <option value="localtime">Use local time zone for timestamps</option>
                     <option value="msec">Include milliseconds in timestamp</option>
@@ -86,7 +86,7 @@
     <div class="form-group row">
             <label for="inputFacility" data-live-search="true" class="col-sm-2 col-form-label">Facility parameter for syslog messages</label>
             <div class="col-sm-10">
-                <select required="required" class="custom-select my-1 mr-sm-2" name="inputFacility" id="inputFacility" value="{{ request.form['inputFacility'] }}">
+                <select required="required" class="custom-select pull-left my-1 mr-sm-2" name="inputFacility" id="inputFacility" value="{{ request.form['inputFacility'] }}">
                     <option value="">Choose...</option>
                         <option value="auth">Authorization system</option>
                     <option value="cron">Cron/at facility</option>
@@ -118,7 +118,7 @@
     <div class="form-group row">
             <label for="inputTrap" data-live-search="true" class="col-sm-2 col-form-label">Set syslog server logging level</label>
             <div class="col-sm-10">
-                <select required="required" class="custom-select my-1 mr-sm-2" name="inputTrap" id="inputTrap" value="{{ request.form['inputTrap'] }}">
+                <select required="required" class="custom-select pull-left my-1 mr-sm-2" name="inputTrap" id="inputTrap" value="{{ request.form['inputTrap'] }}">
                     <option value="">Choose...</option>
                         <option value="alerts">Immediate action needed</option>
                     <option value="critical">Critical conditions</option>

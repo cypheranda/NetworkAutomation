@@ -34,7 +34,7 @@
           <div class="form-group row">
             <label for="inputInventory" data-live-search="true" class="col-sm-2 col-form-label">Inventory</label>
             <div class="col-sm-10">
-                <select required="required" class="custom-select my-1 mr-sm-2" name="inputInventory" id="inputInventory" value="{{ request.form['inputInventory'] }}" onchange="myFunction()">
+                <select required="required" class="custom-select pull-left my-1 mr-sm-2" name="inputInventory" id="inputInventory" value="{{ request.form['inputInventory'] }}" onchange="myFunction()">
                     <option value="">Choose...</option>
                     {% for inventory in inventories %}
                         <option data-id={{ inventory.name }} rel={{ inventory.name }} value={{ inventory.name }}>{{ inventory.name }}</option>
@@ -58,7 +58,7 @@
     <div class="form-group row">
             <label for="inputType" data-live-search="true" class="col-sm-2 col-form-label">Switch or interface?</label>
             <div class="col-sm-10">
-                <select required="required" class="custom-select my-1 mr-sm-2" name="inputType" id="inputType" value="{{ request.form['inputType'] }}">
+                <select required="required" class="custom-select pull-left my-1 mr-sm-2" name="inputType" id="inputType" value="{{ request.form['inputType'] }}">
                     <option value="">Choose...</option>
                         <option data-id="Switch" rel="Switch" value="switch_stp">Switch</option>
                     <option data-id="Interface" rel="Interface" value="interface_stp">Interface</option>
@@ -74,7 +74,7 @@
     <div class="form-group row">
             <label for="inputFeature" data-live-search="true" class="col-sm-2 col-form-label">Feature</label>
             <div class="col-sm-10">
-                <select required="required" class="custom-select my-1 mr-sm-2" name="inputFeature" id="inputFeature" value="{{ request.form['inputFeature'] }}" onchange="myFunction()">
+                <select required="required" class="custom-select pull-left my-1 mr-sm-2" name="inputFeature" id="inputFeature" value="{{ request.form['inputFeature'] }}" onchange="myFunction()">
                     <option class="Switch Interface" value="">Choose...</option>
                     <option class="Switch" value="backbonefast">Enable BackboneFast Feature</option>
                     <option class="Switch" value="bridge">STP Bridge Assurance parameters</option>
@@ -111,7 +111,7 @@
     <div class="form-group row">
             <label for="inputMode" data-live-search="true" class="col-sm-2 col-form-label">Mode</label>
             <div class="col-sm-10">
-                <select required="required" disabled class="custom-select my-1 mr-sm-2" name="inputMode" id="inputMode" value="{{ request.form['inputMode'] }}">
+                <select required="required" disabled class="custom-select pull-left my-1 mr-sm-2" name="inputMode" id="inputMode" value="{{ request.form['inputMode'] }}">
                     <option value="">Choose...</option>
                     <option rel="mst" value="mst">Multiple spanning tree mode</option>
                     <option rel="pvst" value="pvst">Per-Vlan spanning tree mode</option>
@@ -195,7 +195,7 @@
     <div class="form-group row">
             <label for="inputPortfast" data-live-search="true" class="col-sm-2 col-form-label">Spanning tree portfast options</label>
             <div class="col-sm-10">
-                <select required="required" disabled class="custom-select my-1 mr-sm-2" name="inputPortfast" id="inputPortfast" value="{{ request.form['inputPortfast'] }}">
+                <select required="required" disabled class="custom-select pull-left my-1 mr-sm-2" name="inputPortfast" id="inputPortfast" value="{{ request.form['inputPortfast'] }}">
                     <option value="">Choose...</option>
                     <option value="edge bpdufilter">Enable portfast edge bpdu filter on this switch</option>
                     <option value="edge bpduguard">Enable portfast edge bpdu guard on this switch</option>
@@ -241,7 +241,7 @@
     <div class="form-group row">
             <label for="inputRoot" data-live-search="true" class="col-sm-2 col-form-label">Root</label>
             <div class="col-sm-10">
-                <select class="custom-select my-1 mr-sm-2" disabled required name="inputRoot" id="inputRoot" value="{{ request.form['inputRoot'] }}">
+                <select class="custom-select pull-left my-1 mr-sm-2" disabled required name="inputRoot" id="inputRoot" value="{{ request.form['inputRoot'] }}">
                     <option value="">Choose...</option>
                     <option value="primary">Configure this switch as primary root for this spanning tree</option>
                     <option value="secondary">Configure switch as secondary root</option>
@@ -251,7 +251,7 @@
     <div class="form-group row">
             <label for="inputBPDUFilter" data-live-search="true" class="col-sm-2 col-form-label">Enable/Disable BPDU filtering for this interface</label>
             <div class="col-sm-10">
-                <select required="required" disabled class="custom-select my-1 mr-sm-2" name="inputBPDUFilter" id="inputBPDUFilter" value="{{ request.form['inputBPDUFilter'] }}">
+                <select required="required" disabled class="custom-select pull-left my-1 mr-sm-2" name="inputBPDUFilter" id="inputBPDUFilter" value="{{ request.form['inputBPDUFilter'] }}">
                     <option value="">Choose...</option>
                         <option value="enable">Enable BPDU filtering for this interface</option>
                     <option value="disable">Disable BPDU filtering for this interface</option>
@@ -261,7 +261,7 @@
     <div class="form-group row">
             <label for="inputBPDUGuard" data-live-search="true" class="col-sm-2 col-form-label">Enable/Disable BPDU guard for this interface</label>
             <div class="col-sm-10">
-                <select required="required" disabled class="custom-select my-1 mr-sm-2" name="inputBPDUGuard" id="inputBPDUGuard" value="{{ request.form['inputBPDUGuard'] }}">
+                <select required="required" disabled class="custom-select pull-left my-1 mr-sm-2" name="inputBPDUGuard" id="inputBPDUGuard" value="{{ request.form['inputBPDUGuard'] }}">
                     <option value="">Choose...</option>
                         <option value="enable">Enable BPDU guard for this interface</option>
                     <option value="disable">Disable BPDU guard for this interface</option>
@@ -277,7 +277,7 @@
     <div class="form-group row">
             <label for="inputGuard" data-live-search="true" class="col-sm-2 col-form-label">Change an interface's spanning tree guard mode</label>
             <div class="col-sm-10">
-                <select required="required" disabled class="custom-select my-1 mr-sm-2" name="inputGuard" id="inputGuard" value="{{ request.form['inputGuard'] }}">
+                <select required="required" disabled class="custom-select pull-left my-1 mr-sm-2" name="inputGuard" id="inputGuard" value="{{ request.form['inputGuard'] }}">
                     <option value="">Choose...</option>
                         <option value="loop">Set guard mode to loop guard on interface</option>
                     <option value="none">Set guard mode to none</option>
@@ -288,7 +288,7 @@
     <div class="form-group row">
             <label for="inputLinktype" data-live-search="true" class="col-sm-2 col-form-label">Specify a link type for spanning tree protocol use</label>
             <div class="col-sm-10">
-                <select required="required" disabled class="custom-select my-1 mr-sm-2" name="inputLinktype" id="inputLinktype" value="{{ request.form['inputLinktype'] }}">
+                <select required="required" disabled class="custom-select pull-left my-1 mr-sm-2" name="inputLinktype" id="inputLinktype" value="{{ request.form['inputLinktype'] }}">
                     <option value="">Choose...</option>
                         <option value="point-to-point">Consider the interface as point-to-point</option>
                     <option value="shared">Consider the interface as shared</option>
@@ -304,7 +304,7 @@
     <div class="form-group row">
             <label for="inputInterfacePortfast" data-live-search="true" class="col-sm-2 col-form-label">Portfast options for the interface</label>
             <div class="col-sm-10">
-                <select required="required" disabled class="custom-select my-1 mr-sm-2" name="inputInterfacePortfast" id="inputInterfacePortfast" value="{{ request.form['inputInterfacePortfast'] }}">
+                <select required="required" disabled class="custom-select pull-left my-1 mr-sm-2" name="inputInterfacePortfast" id="inputInterfacePortfast" value="{{ request.form['inputInterfacePortfast'] }}">
                     <option value="">Choose...</option>
                         <option value="disable">Disable portfast for this interface</option>
                     <option value="edge">Enable portfast edge on the interface</option>
@@ -316,7 +316,7 @@
     <div class="form-group row">
             <label for="inputInterfaceMST" data-live-search="true" class="col-sm-2 col-form-label">Multiple spanning tree</label>
             <div class="col-sm-10">
-                <select required="required" disabled class="custom-select my-1 mr-sm-2" name="inputInterfaceMST" id="inputInterfaceMST" value="{{ request.form['inputInterfaceMST'] }}">
+                <select required="required" disabled class="custom-select pull-left my-1 mr-sm-2" name="inputInterfaceMST" id="inputInterfaceMST" value="{{ request.form['inputInterfaceMST'] }}">
                     <option value="">Choose...</option>
                         <option value="instance cost">Change the interface spanning tree path cost for an instance</option>
                     <option value="instance port-priority">Change the spanning tree port priority for an instance</option>

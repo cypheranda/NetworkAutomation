@@ -34,7 +34,7 @@
           <div class="form-group row">
             <label for="inputInventory" data-live-search="true" class="col-sm-2 col-form-label">Inventory</label>
             <div class="col-sm-10">
-                <select required="required" class="custom-select my-1 mr-sm-2" name="inputInventory" id="inputInventory" value="{{ request.form['inputInventory'] }}" onchange="myFunction()">
+                <select required="required" class="custom-select pull-left my-1 mr-sm-2" name="inputInventory" id="inputInventory" value="{{ request.form['inputInventory'] }}" onchange="myFunction()">
                     <option value="">Choose...</option>
                     {% for inventory in inventories %}
                         <option data-id={{ inventory.name }} rel={{ inventory.name }} value={{ inventory.name }}>{{ inventory.name }}</option>
@@ -55,15 +55,11 @@
                   </select>
             </div>
           </div>
-
-              <div class="form-check">
-      <input class="form-check-input" type="checkbox" value="" name="defaultCheck" id="defaultCheck" required>
-
-                        <label class="form-check-label" for="defaultCheck">
-        Please note that the current device configuration will be written to startup config
-      </label>
-                  <br><br>
-    </div>
+                      <div class="form-group row">
+            <div class="col-sm-10">
+              <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+          </div>
 
     </form>
 {% endblock %}

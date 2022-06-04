@@ -35,15 +35,21 @@ def get_device_data(inventory, devices):
 
     # get devices general data
     fin.seek(0)
+    vars_line = '[' + devices + ':vars]\n'
+    found_line = 0
     for line in fin:
-        if "ansible_network_os" in line:
+        if line == vars_line:
+            found_line = 1
+        elif ':vars]' in line:
+            found_line = 0
+        if "ansible_network_os" in line and found_line == 1:
             devices_ostype = line.split('=')[1]
-        if "ansible_user" in line:
+        if "ansible_user" in line and found_line == 1:
             devices_username = line.split('=')[1]
-        if "ansible_password" in line:
+        if "ansible_password" in line and found_line == 1:
             to_eliminate = line.split('=')[0] + '='
             devices_password = re.sub(to_eliminate, '', line)
-        if "ansible_become_password" in line:
+        if "ansible_become_password" in line and found_line == 1:
             to_eliminate = line.split('=')[0] + '='
             devices_enable_password = re.sub(to_eliminate, '', line)
 

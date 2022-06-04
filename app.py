@@ -50,7 +50,7 @@ from templates.myscripts import netmiko_show, netmiko_run_commands_from_file, se
 from templates.myscripts import copy_files_frommaintarget, stp, tftp_transfer, napalm_ip_source_guard, setup_ftp
 from templates.myscripts import netmiko_ospf, dhcp_server, dhcp_snooping
 from passlib.hash import sha256_crypt
-
+import json
 from os.path import join, dirname, realpath
 
 # ...
@@ -277,7 +277,7 @@ class SuperuserModelView(sqla.ModelView):
 class UserView(SuperuserModelView):
     column_editable_list = ['email']
     column_searchable_list = column_editable_list
-    column_exclude_list = ['password']
+    column_exclude_list = ['password', 'confirmed_at', 'active']
     # form_excluded_columns = column_exclude_list
     column_details_exclude_list = column_exclude_list
     column_filters = column_editable_list
@@ -291,6 +291,7 @@ def get_data():
     # return "yes"
     ip_address = request.args.get('keyword')
     return ping.do_ping(ip_address)
+
 
 class DeviceView(sqla.ModelView):
     column_list = ('name', 'ip_address', 'description', 'src_file', 'dest_file', 'ping_now')
@@ -515,6 +516,7 @@ def check_range(text):
                 return 0
             return 1
 
+
 def adjust_file(inv_file, password_str, enable_str):
     filename = str(uuid.uuid4())
     original_path = 'templates/myscripts/inventories/' + inv_file
@@ -552,7 +554,7 @@ def write_inventory_files(filenames):
         file_path = os.path.join(ROOT_DIR, path)  # requires `import os`
         filein = open(file_path, "w+")
         all_categories = Category.query.filter_by(inventory_id=filename.id).all()
-        categories=[]
+        categories = []
         for each_category in all_categories:
             entry = DeviceCategoryRelation.query.filter_by(category=each_category).all()
             if entry:
@@ -591,44 +593,65 @@ def write_inventory_files(filenames):
 
         filein.close()
 
-@app.route('/fetch_config')
-def send_data():
-    inputUsername = request.args.get('username')
-    inputPassword = request.args.get('password')
-    inputEnablePassword = request.args.get('enable')
-    inputInventory = request.args.get('inventory')
-    inputDevices = request.args.get('devices')
 
-    if not inputUsername:
-        flash('Username is required!')
-    elif not inputPassword:
-        flash('Password is required!')
-    elif not inputEnablePassword:
-        flash('Enable password is required!')
-    if inputInventory:
-        inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
+@app.route('/fetch_config', methods=['POST'])
+def send_data():
+    json = request.json
+    inputUsername = json['username']
+    inputPassword = json['password']
+    inputEnablePassword = json['enable']
+    inputInventory = json['inventory']
+    inputDevices = json['devices']
+
     if not inputDevices:
-        flash('Devices are required!')
+        return 'Devices are required!'
     else:
+        inv_path = 'templates/myscripts/inventories/' + inputInventory
+        original_inv_path = os.path.join(ROOT_DIR, inv_path)  # requires `import os`
         devices_hostname, devices_ip, devices_ostype, devices_username, devices_password, devices_enable_password = netmiko_get_devices_array.get_device_data(
-            inputInventory, inputDevices)
-        devices_password = sha256_crypt.encrypt(devices_password)
-        devices_enable_password = sha256_crypt.encrypt(devices_enable_password)
+            original_inv_path, inputDevices)
         if ((devices_username != inputUsername) or (
                 sha256_crypt.verify(inputPassword, devices_password) != True) or (
                 sha256_crypt.verify(inputEnablePassword, devices_enable_password) != True)):
-            os.remove(inputInventory)
-            flash(
-                "These are not the credentials from the inventory file! Please reconfigure the file accordingly.")
+            return "These are not the credentials from the inventory file! Please reconfigure the file accordingly."
         else:
+            inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
             # run playbook here
             ansible_cmd = "ansible-playbook -i {0} ios_show_run.yaml --extra-vars \"variable_host={1}\"".format(
                 inputInventory, inputDevices)
             # to run this cmd
-            # os.remove(inputInventory)
-            # output = os.popen(ansible_cmd).read()
-            # flash(output)
-            return ansible_cmd
+
+            output = os.popen(ansible_cmd).read()
+            os.remove(inputInventory)
+            return output
+
+
+@app.route('/fetch_backups', methods=['POST', 'GET'])
+def get_backups():
+    myjson = request.json
+    inventory = myjson['inventory']
+    devices = myjson['devices']
+
+    # get all backup files array
+    small_path = 'templates/myscripts/backup'
+    BACKUPS_PATH = os.path.join(ROOT_DIR, small_path)  # requires `import os`
+    mylist = os.listdir(BACKUPS_PATH)
+
+    # get devices array
+    my_category = Category.query.filter_by(name=devices).first()
+    devices_array = DeviceCategoryRelation.query.filter_by(category=my_category).all()
+
+    # get backup files for these devices
+    obj_list = {}
+    for device_rel in devices_array:
+        my_array = []
+        for filename in mylist:
+            if device_rel.device.name+"_config" in filename:
+                my_array.append(filename)
+        obj_list[device_rel.device.name] = my_array
+
+    return_json = json.dumps(obj_list)
+    return return_json
 
 
 @app.route('/admin/<template_type>', methods=['POST', 'GET'])
@@ -692,9 +715,7 @@ def find_template(template_type):
                 flash('Password is required!')
             elif not inputEnablePassword:
                 flash('Enable password is required!')
-            if inputInventory:
-                inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
-            if not inputDevices:
+            elif not inputDevices:
                 flash('Devices are required!')
             elif not inputType:
                 flash('Type is required!')
@@ -755,17 +776,17 @@ def find_template(template_type):
                     [inputType, inputSecurityBanner, inputNewEnableSecret, inputNewEnablePassword, inputLocalUsername,
                      inputLocalPassword, inputBlockingPeriod, inputLoginFailures, inputTimePeriod, inputSSHOption,
                      inputHostname, inputDomainName, inputFirewallOption, inputTCPOption])
+                inv_path = 'templates/myscripts/inventories/' + inputInventory
+                original_inv_path = os.path.join(ROOT_DIR, inv_path)  # requires `import os`
                 devices_hostname, devices_ip, devices_ostype, devices_username, devices_password, devices_enable_password = netmiko_get_devices_array.get_device_data(
-                    inputInventory, inputDevices)
-                devices_password = sha256_crypt.encrypt(devices_password)
-                devices_enable_password = sha256_crypt.encrypt(devices_enable_password)
+                    original_inv_path, inputDevices)
                 if ((devices_username != inputUsername) or (
                         sha256_crypt.verify(inputPassword, devices_password) != True) or (
                         sha256_crypt.verify(inputEnablePassword, devices_enable_password) != True)):
-                    os.remove(inputInventory)
                     flash(
                         "These are not the credentials from the inventory file! Please reconfigure the file accordingly.")
                 else:
+                    inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
                     output = autosecure.do_autosecure(devices_ip, devices_ostype, devices_username, inputPassword,
                                                       inputEnablePassword, vars_array)
                     os.remove(inputInventory)
@@ -791,9 +812,7 @@ def find_template(template_type):
                 flash('Password is required!')
             elif not inputEnablePassword:
                 flash('Enable password is required!')
-            if inputInventory:
-                inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
-            if not inputDevices:
+            elif not inputDevices:
                 flash('Devices are required!')
             elif not inputInterface:
                 flash('Interface is required!')
@@ -808,21 +827,20 @@ def find_template(template_type):
             elif validate_mac_address(inputMacAddress) == False:
                 flash('That is not a valid MAC address!')
             else:
+                inv_path = 'templates/myscripts/inventories/' + inputInventory
+                original_inv_path = os.path.join(ROOT_DIR, inv_path)  # requires `import os`
                 devices_hostname, devices_ip, devices_ostype, devices_username, devices_password, devices_enable_password = netmiko_get_devices_array.get_device_data(
-                    inputInventory, inputDevices)
-                devices_password = sha256_crypt.encrypt(devices_password)
-                devices_enable_password = sha256_crypt.encrypt(devices_enable_password)
+                    original_inv_path, inputDevices)
                 if ((devices_username != inputUsername) or (
                         sha256_crypt.verify(inputPassword, devices_password) != True) or (
                         sha256_crypt.verify(inputEnablePassword, devices_enable_password) != True)):
-                    os.remove(inputInventory)
                     flash(
                         "These are not the credentials from the inventory file! Please reconfigure the file accordingly.")
                 elif napalm_retrieve_info.check_interface(inputInterface, devices_ip, devices_ostype, devices_username,
                                                           inputPassword, inputEnablePassword) == 0:
-                    os.remove(inputInventory)
                     flash("The interface you entered is not present in all of the devices you selected!")
                 else:
+                    inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
                     output = napalm_ip_source_guard.do_ipsg(devices_ip, devices_ostype, devices_username, inputPassword,
                                                             inputEnablePassword, inputType, inputIpAddress,
                                                             inputMacAddress, inputVlan, inputInterface)
@@ -843,22 +861,20 @@ def find_template(template_type):
                 flash('Password is required!')
             elif not inputEnablePassword:
                 flash('Enable password is required!')
-            if inputInventory:
-                inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
-            if not inputDevices:
+            elif not inputDevices:
                 flash('Devices are required!')
             else:
+                inv_path = 'templates/myscripts/inventories/' + inputInventory
+                original_inv_path = os.path.join(ROOT_DIR, inv_path)  # requires `import os`
                 devices_hostname, devices_ip, devices_ostype, devices_username, devices_password, devices_enable_password = netmiko_get_devices_array.get_device_data(
-                    inputInventory, inputDevices)
-                devices_password = sha256_crypt.encrypt(devices_password)
-                devices_enable_password = sha256_crypt.encrypt(devices_enable_password)
+                    original_inv_path, inputDevices)
                 if ((devices_username != inputUsername) or (
                         sha256_crypt.verify(inputPassword, devices_password) != True) or (
                         sha256_crypt.verify(inputEnablePassword, devices_enable_password) != True)):
-                    os.remove(inputInventory)
                     flash(
                         "These are not the credentials from the inventory file! Please reconfigure the file accordingly.")
                 else:
+                    inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
                     output = secure_boot.do_secureboot(devices_ip, devices_ostype, devices_username, inputPassword,
                                                        inputEnablePassword, "archive_router_config")
                     os.remove(inputInventory)
@@ -881,9 +897,7 @@ def find_template(template_type):
                 flash('Password is required!')
             elif not inputEnablePassword:
                 flash('Enable password is required!')
-            if inputInventory:
-                inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
-            if not inputDevices:
+            elif not inputDevices:
                 flash('Devices are required!')
             elif not inputTrustedInterfaces:
                 flash('Interfaces are required!')
@@ -892,18 +906,18 @@ def find_template(template_type):
             elif not inputUntrustedLimit:
                 flash('Limit is required!')
             else:
+                inv_path = 'templates/myscripts/inventories/' + inputInventory
+                original_inv_path = os.path.join(ROOT_DIR, inv_path)  # requires `import os`
                 devices_hostname, devices_ip, devices_ostype, devices_username, devices_password, devices_enable_password = netmiko_get_devices_array.get_device_data(
-                    inputInventory, inputDevices)
-                devices_password = sha256_crypt.encrypt(devices_password)
-                devices_enable_password = sha256_crypt.encrypt(devices_enable_password)
+                    original_inv_path, inputDevices)
                 if ((devices_username != inputUsername) or (
                         sha256_crypt.verify(inputPassword, devices_password) != True) or (
                         sha256_crypt.verify(inputEnablePassword, devices_enable_password) != True)):
-                    os.remove(inputInventory)
                     flash(
                         "These are not the credentials from the inventory file! Please reconfigure the file accordingly.")
                     return redirect(request.url)
                 else:
+                    inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
                     VLANs = split_string(inputVlans)
                     for inputVLAN in VLANs:
                         if check_range(inputVLAN) == 0:
@@ -913,17 +927,20 @@ def find_template(template_type):
                     trusted_interfaces = split_string(inputTrustedInterfaces)
                     ok_interfaces = 1
                     for inputInterface in trusted_interfaces:
-                        if napalm_retrieve_info.check_interface(inputInterface, devices_ip, devices_ostype, devices_username,
-                                                          inputPassword, inputEnablePassword) == 0:
+                        if napalm_retrieve_info.check_interface(inputInterface, devices_ip, devices_ostype,
+                                                                devices_username,
+                                                                inputPassword, inputEnablePassword) == 0:
                             os.remove(inputInventory)
                             os.remove(inputInventory)
                             ok_interfaces = 0
-                            flash("The interface you entered is not present in all of the devices you selected or you didn't write the interfaces string right!")
+                            flash(
+                                "The interface you entered is not present in all of the devices you selected or you didn't write the interfaces string right!")
                             return redirect(request.url)
                     if ok_interfaces == 1:
-                        output = dhcp_snooping.do_dhcp_snooping(devices_ip, devices_ostype, devices_username, inputPassword,
-                                                            inputEnablePassword, VLANs, trusted_interfaces,
-                                                            inputUntrustedLimit)
+                        output = dhcp_snooping.do_dhcp_snooping(devices_ip, devices_ostype, devices_username,
+                                                                inputPassword,
+                                                                inputEnablePassword, VLANs, trusted_interfaces,
+                                                                inputUntrustedLimit)
                         os.remove(inputInventory)
                         flash(output)
                         return redirect(request.url)
@@ -944,44 +961,43 @@ def find_template(template_type):
                 flash('Password is required!')
             elif not inputEnablePassword:
                 flash('Enable password is required!')
-            if inputInventory:
-                inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
-            if not inputDevices:
+            elif not inputDevices:
                 flash('Devices are required!')
             else:
+                inv_path = 'templates/myscripts/inventories/' + inputInventory
+                original_inv_path = os.path.join(ROOT_DIR, inv_path)  # requires `import os`
                 VLANs = split_string(inputVLANs)
                 for inputVLAN in VLANs:
                     if check_range(inputVLAN) == 0:
-                        os.remove(inputInventory)
                         flash("The VLANs are not entered correctly, check the spelling!")
                         return redirect(request.url)
                 trustedInterfaces = split_string(inputTrustedInterfaces)
                 untrustedInterfaces = split_string(inputUntrustedInterfaces)
                 devices_hostname, devices_ip, devices_ostype, devices_username, devices_password, devices_enable_password = netmiko_get_devices_array.get_device_data(
-                    inputInventory, inputDevices)
-                devices_password = sha256_crypt.encrypt(devices_password)
-                devices_enable_password = sha256_crypt.encrypt(devices_enable_password)
+                    original_inv_path, inputDevices)
+                ok = 1
                 if ((devices_username != inputUsername) or (
                         sha256_crypt.verify(inputPassword, devices_password) != True) or (
                         sha256_crypt.verify(inputEnablePassword, devices_enable_password) != True)):
-                    os.remove(inputInventory)
+                    ok = 0
                     flash(
                         "These are not the credentials from the inventory file! Please reconfigure the file accordingly.")
-                    for inputInterface in trustedInterfaces:
-                        if napalm_retrieve_info.check_interface(inputInterface, devices_ip, devices_ostype,
-                                                                devices_username, inputPassword,
-                                                                inputEnablePassword) == 0:
-                            os.remove(inputInventory)
-                            flash(
-                                "The trusted interface you entered is not present in all of the devices you selected!")
-                    for inputInterface in untrustedInterfaces:
-                        if napalm_retrieve_info.check_interface(inputInterface, devices_ip, devices_ostype,
-                                                                devices_username, inputPassword,
-                                                                inputEnablePassword) == 0:
-                            os.remove(inputInventory)
-                            flash(
-                                "The untrusted interface you entered is not present in all of the devices you selected!")
-                else:
+                for inputInterface in trustedInterfaces:
+                    if napalm_retrieve_info.check_interface(inputInterface, devices_ip, devices_ostype,
+                                                            devices_username, inputPassword,
+                                                            inputEnablePassword) == 0:
+                        ok = 0
+                        flash(
+                            "The trusted interface you entered is not present in all of the devices you selected!")
+                for inputInterface in untrustedInterfaces:
+                    if napalm_retrieve_info.check_interface(inputInterface, devices_ip, devices_ostype,
+                                                            devices_username, inputPassword,
+                                                            inputEnablePassword) == 0:
+                        ok = 0
+                        flash(
+                            "The untrusted interface you entered is not present in all of the devices you selected!")
+                if ok == 1:
+                    inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
                     output = dai.dai(devices_ip, devices_ostype, devices_username, inputPassword,
                                      inputEnablePassword, VLANs, trustedInterfaces, untrustedInterfaces)
                     os.remove(inputInventory)
@@ -1003,26 +1019,24 @@ def find_template(template_type):
                 flash('Password is required!')
             elif not inputEnablePassword:
                 flash('Enable password is required!')
-            if inputInventory:
-                inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
-            if not inputDevices:
+            elif not inputDevices:
                 flash('Devices are required!')
             elif not inputTargetHostname:
                 flash('Target hostname is required!')
             elif not inputType:
                 flash('Type is required!')
             else:
+                inv_path = 'templates/myscripts/inventories/' + inputInventory
+                original_inv_path = os.path.join(ROOT_DIR, inv_path)  # requires `import os`
                 devices_hostname, devices_ip, devices_ostype, devices_username, devices_password, devices_enable_password = netmiko_get_devices_array.get_device_data(
-                    inputInventory, inputDevices)
-                devices_password = sha256_crypt.encrypt(devices_password)
-                devices_enable_password = sha256_crypt.encrypt(devices_enable_password)
+                    original_inv_path, inputDevices)
                 if ((devices_username != inputUsername) or (
                         sha256_crypt.verify(inputPassword, devices_password) != True) or (
                         sha256_crypt.verify(inputEnablePassword, devices_enable_password) != True)):
-                    os.remove(inputInventory)
                     flash(
                         "These are not the credentials from the inventory file! Please reconfigure the file accordingly.")
                 else:
+                    inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
                     output = copy_files_frommaintarget.copy_from_device_to_devices(inputTargetHostname,
                                                                                    devices_hostname, inputType)
                     os.remove(inputInventory)
@@ -1042,22 +1056,20 @@ def find_template(template_type):
                 flash('Password is required!')
             elif not inputEnablePassword:
                 flash('Enable password is required!')
-            if inputInventory:
-                inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
-            if not inputDevices:
+            elif not inputDevices:
                 flash('Devices are required!')
             else:
+                inv_path = 'templates/myscripts/inventories/' + inputInventory
+                original_inv_path = os.path.join(ROOT_DIR, inv_path)  # requires `import os`
                 devices_hostname, devices_ip, devices_ostype, devices_username, devices_password, devices_enable_password = netmiko_get_devices_array.get_device_data(
-                    inputInventory, inputDevices)
-                devices_password = sha256_crypt.encrypt(devices_password)
-                devices_enable_password = sha256_crypt.encrypt(devices_enable_password)
+                    original_inv_path, inputDevices)
                 if ((devices_username != inputUsername) or (
                         sha256_crypt.verify(inputPassword, devices_password) != True) or (
                         sha256_crypt.verify(inputEnablePassword, devices_enable_password) != True)):
-                    os.remove(inputInventory)
                     flash(
                         "These are not the credentials from the inventory file! Please reconfigure the file accordingly.")
                 else:
+                    inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
                     # run playbook here
                     play_path = scripts_path + 'set_hostnames.yaml'
                     ansible_cmd = "ansible-playbook -i {0} {2} --extra-vars \"variable_host={1}\"".format(
@@ -1083,24 +1095,22 @@ def find_template(template_type):
                 flash('Password is required!')
             elif not inputEnablePassword:
                 flash('Enable password is required!')
-            if inputInventory:
-                inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
-            if not inputDevices:
+            elif not inputDevices:
                 flash('Devices are required!')
             elif not inputDomainName:
                 flash('Domain-name is required!')
             else:
+                inv_path = 'templates/myscripts/inventories/' + inputInventory
+                original_inv_path = os.path.join(ROOT_DIR, inv_path)  # requires `import os`
                 devices_hostname, devices_ip, devices_ostype, devices_username, devices_password, devices_enable_password = netmiko_get_devices_array.get_device_data(
-                    inputInventory, inputDevices)
-                devices_password = sha256_crypt.encrypt(devices_password)
-                devices_enable_password = sha256_crypt.encrypt(devices_enable_password)
+                    original_inv_path, inputDevices)
                 if ((devices_username != inputUsername) or (
                         sha256_crypt.verify(inputPassword, devices_password) != True) or (
                         sha256_crypt.verify(inputEnablePassword, devices_enable_password) != True)):
-                    os.remove(inputInventory)
                     flash(
                         "These are not the credentials from the inventory file! Please reconfigure the file accordingly.")
                 else:
+                    inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
                     # run playbook here
                     play_path = scripts_path + 'set_domain_name.yaml'
                     ansible_cmd = "ansible-playbook -i {0} {3} --extra-vars \"variable_host={1} domain_name=\'{2}\'\"".format(
@@ -1130,9 +1140,7 @@ def find_template(template_type):
                 flash('Password is required!')
             elif not inputEnablePassword:
                 flash('Enable password is required!')
-            if inputInventory:
-                inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
-            if not inputDevices:
+            elif not inputDevices:
                 flash('Devices are required!')
             elif not inputMOTDBanner:
                 flash('MOTD banner is required!')
@@ -1143,17 +1151,17 @@ def find_template(template_type):
             elif not inputIncomingBanner:
                 flash('Incoming banner is required!')
             else:
+                inv_path = 'templates/myscripts/inventories/' + inputInventory
+                original_inv_path = os.path.join(ROOT_DIR, inv_path)  # requires `import os`
                 devices_hostname, devices_ip, devices_ostype, devices_username, devices_password, devices_enable_password = netmiko_get_devices_array.get_device_data(
-                    inputInventory, inputDevices)
-                devices_password = sha256_crypt.encrypt(devices_password)
-                devices_enable_password = sha256_crypt.encrypt(devices_enable_password)
+                    original_inv_path, inputDevices)
                 if ((devices_username != inputUsername) or (
                         sha256_crypt.verify(inputPassword, devices_password) != True) or (
                         sha256_crypt.verify(inputEnablePassword, devices_enable_password) != True)):
-                    os.remove(inputInventory)
                     flash(
                         "These are not the credentials from the inventory file! Please reconfigure the file accordingly.")
                 else:
+                    inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
                     # run playbook here
                     # motd
                     if inputMOTDBanner == "default":
@@ -1273,9 +1281,7 @@ def find_template(template_type):
                 flash('Password is required!')
             elif not inputEnablePassword:
                 flash('Enable password is required!')
-            if inputInventory:
-                inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
-            if not inputDevices:
+            elif not inputDevices:
                 flash('Devices are required!')
             elif not inputSyslogServer:
                 flash('Syslog server is required!')
@@ -1290,17 +1296,17 @@ def find_template(template_type):
             elif not inputTrap:
                 flash('Trap is required!')
             else:
+                inv_path = 'templates/myscripts/inventories/' + inputInventory
+                original_inv_path = os.path.join(ROOT_DIR, inv_path)  # requires `import os`
                 devices_hostname, devices_ip, devices_ostype, devices_username, devices_password, devices_enable_password = netmiko_get_devices_array.get_device_data(
-                    inputInventory, inputDevices)
-                devices_password = sha256_crypt.encrypt(devices_password)
-                devices_enable_password = sha256_crypt.encrypt(devices_enable_password)
+                    original_inv_path, inputDevices)
                 if ((devices_username != inputUsername) or (
                         sha256_crypt.verify(inputPassword, devices_password) != True) or (
                         sha256_crypt.verify(inputEnablePassword, devices_enable_password) != True)):
-                    os.remove(inputInventory)
                     flash(
                         "These are not the credentials from the inventory file! Please reconfigure the file accordingly.")
                 else:
+                    inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
                     # run playbook here
                     play_path = scripts_path + 'syslog_config.yaml'
                     ansible_cmd = "ansible-playbook -i {0} {7} --tags \"set_syslog_server,set_facility,set_trap_level\" --extra-vars \"variable_host={1} timestamps_type=\'{2}\' datetime_choice=\'{3}\' syslog_server=\'{4}\' facility_type=\'{5}\' trap_level=\'{6}\'\"".format(
@@ -1326,22 +1332,20 @@ def find_template(template_type):
                 flash('Password is required!')
             elif not inputEnablePassword:
                 flash('Enable password is required!')
-            if inputInventory:
-                inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
-            if not inputDevices:
+            elif not inputDevices:
                 flash('Devices are required!')
             else:
+                inv_path = 'templates/myscripts/inventories/' + inputInventory
+                original_inv_path = os.path.join(ROOT_DIR, inv_path)  # requires `import os`
                 devices_hostname, devices_ip, devices_ostype, devices_username, devices_password, devices_enable_password = netmiko_get_devices_array.get_device_data(
-                    inputInventory, inputDevices)
-                devices_password = sha256_crypt.encrypt(devices_password)
-                devices_enable_password = sha256_crypt.encrypt(devices_enable_password)
+                    original_inv_path, inputDevices)
                 if ((devices_username != inputUsername) or (
                         sha256_crypt.verify(inputPassword, devices_password) != True) or (
                         sha256_crypt.verify(inputEnablePassword, devices_enable_password) != True)):
-                    os.remove(inputInventory)
                     flash(
                         "These are not the credentials from the inventory file! Please reconfigure the file accordingly.")
                 else:
+                    inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
                     # run playbook here
                     play_path = scripts_path + 'save_config.yaml'
                     ansible_cmd = "ansible-playbook -i {0} {2} --tags \"save_config\" --extra-vars \"variable_host={1}\"".format(
@@ -1368,22 +1372,20 @@ def find_template(template_type):
                 flash('Password is required!')
             elif not inputEnablePassword:
                 flash('Enable password is required!')
-            if inputInventory:
-                inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
-            if not inputDevices:
+            elif not inputDevices:
                 flash('Devices are required!')
             else:
+                inv_path = 'templates/myscripts/inventories/' + inputInventory
+                original_inv_path = os.path.join(ROOT_DIR, inv_path)  # requires `import os`
                 devices_hostname, devices_ip, devices_ostype, devices_username, devices_password, devices_enable_password = netmiko_get_devices_array.get_device_data(
-                    inputInventory, inputDevices)
-                devices_password = sha256_crypt.encrypt(devices_password)
-                devices_enable_password = sha256_crypt.encrypt(devices_enable_password)
+                    original_inv_path, inputDevices)
                 if ((devices_username != inputUsername) or (
                         sha256_crypt.verify(inputPassword, devices_password) != True) or (
                         sha256_crypt.verify(inputEnablePassword, devices_enable_password) != True)):
-                    os.remove(inputInventory)
                     flash(
                         "These are not the credentials from the inventory file! Please reconfigure the file accordingly.")
                 else:
+                    inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
                     # run playbook here
                     possible_error = netmiko_before_loadbackup.before_loading(devices_ip, devices_ostype,
                                                                               devices_username, inputPassword,
@@ -1394,16 +1396,18 @@ def find_template(template_type):
                         return redirect(request.url)
                     else:
                         # transfer backup files
-                        possible_error2 = netmiko_scp.check_scp(inputInventory, inputDevices, devices_ip, devices_ostype,
+                        possible_error2 = netmiko_scp.check_scp(inputInventory, inputDevices, devices_ip,
+                                                                devices_ostype,
                                                                 devices_username, inputPassword, inputEnablePassword)
                         if possible_error2 == None:
                             play_path = scripts_path + 'ios_load_config.yaml'
                             ansible_cmd = "ansible-playbook -i {0} {2} --extra-vars \"variable_host={1}\"".format(
                                 inputInventory, inputDevices, play_path)
                             # to run this cmd
-                            os.remove(inputInventory)
+
                             output = os.popen(ansible_cmd).read()
                             flash(output)
+                            os.remove(inputInventory)
                             # flash(ansible_cmd)
                             return redirect(request.url)
                         elif "Oops" in possible_error2 or "Connection Refused" in possible_error2:
@@ -1424,22 +1428,20 @@ def find_template(template_type):
                 flash('Password is required!')
             elif not inputEnablePassword:
                 flash('Enable password is required!')
-            if inputInventory:
-                inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
-            if not inputDevices:
+            elif not inputDevices:
                 flash('Devices are required!')
             else:
+                inv_path = 'templates/myscripts/inventories/' + inputInventory
+                original_inv_path = os.path.join(ROOT_DIR, inv_path)  # requires `import os`
                 devices_hostname, devices_ip, devices_ostype, devices_username, devices_password, devices_enable_password = netmiko_get_devices_array.get_device_data(
-                    inputInventory, inputDevices)
-                devices_password = sha256_crypt.encrypt(devices_password)
-                devices_enable_password = sha256_crypt.encrypt(devices_enable_password)
+                    original_inv_path, inputDevices)
                 if ((devices_username != inputUsername) or (
                         sha256_crypt.verify(inputPassword, devices_password) != True) or (
                         sha256_crypt.verify(inputEnablePassword, devices_enable_password) != True)):
-                    os.remove(inputInventory)
                     flash(
                         "These are not the credentials from the inventory file! Please reconfigure the file accordingly.")
                 else:
+                    inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
                     # run playbook here
                     play_path = scripts_path + 'ios_config_backup.yaml'
                     ansible_cmd = "ansible-playbook -i {0} {2} --extra-vars \"variable_host={1}\"".format(
@@ -1465,24 +1467,22 @@ def find_template(template_type):
                 flash('Password is required!')
             elif not inputEnablePassword:
                 flash('Enable password is required!')
-            if inputInventory:
-                inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
-            if not inputDevices:
+            elif not inputDevices:
                 flash('Devices are required!')
             elif not inputSNMPOption:
                 flash('SNMPv3 option is required!')
             else:
+                inv_path = 'templates/myscripts/inventories/' + inputInventory
+                original_inv_path = os.path.join(ROOT_DIR, inv_path)  # requires `import os`
                 devices_hostname, devices_ip, devices_ostype, devices_username, devices_password, devices_enable_password = netmiko_get_devices_array.get_device_data(
-                    inputInventory, inputDevices)
-                devices_password = sha256_crypt.encrypt(devices_password)
-                devices_enable_password = sha256_crypt.encrypt(devices_enable_password)
+                    original_inv_path, inputDevices)
                 if ((devices_username != inputUsername) or (
                         sha256_crypt.verify(inputPassword, devices_password) != True) or (
                         sha256_crypt.verify(inputEnablePassword, devices_enable_password) != True)):
-                    os.remove(inputInventory)
                     flash(
                         "These are not the credentials from the inventory file! Please reconfigure the file accordingly.")
                 else:
+                    inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
                     # run playbook here
                     ansible_cmd = ""
                     if inputSNMPOption == "gather":
@@ -1519,22 +1519,20 @@ def find_template(template_type):
                 flash('Password is required!')
             elif not inputEnablePassword:
                 flash('Enable password is required!')
-            if inputInventory:
-                inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
-            if not inputDevices:
+            elif not inputDevices:
                 flash('Devices are required!')
             else:
+                inv_path = 'templates/myscripts/inventories/' + inputInventory
+                original_inv_path = os.path.join(ROOT_DIR, inv_path)  # requires `import os`
                 devices_hostname, devices_ip, devices_ostype, devices_username, devices_password, devices_enable_password = netmiko_get_devices_array.get_device_data(
-                    inputInventory, inputDevices)
-                devices_password = sha256_crypt.encrypt(devices_password)
-                devices_enable_password = sha256_crypt.encrypt(devices_enable_password)
+                    original_inv_path, inputDevices)
                 if ((devices_username != inputUsername) or (
                         sha256_crypt.verify(inputPassword, devices_password) != True) or (
                         sha256_crypt.verify(inputEnablePassword, devices_enable_password) != True)):
-                    os.remove(inputInventory)
                     flash(
                         "These are not the credentials from the inventory file! Please reconfigure the file accordingly.")
                 else:
+                    inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
                     # run playbook here
                     ansible_cmd = ""
                     if inputACLOption == "gather":
@@ -1570,15 +1568,13 @@ def find_template(template_type):
             inputDevices = request.form['inputDevices']
             vars_array = []
 
-
+            inv_path = 'templates/myscripts/inventories/' + inputInventory
+            original_inv_path = os.path.join(ROOT_DIR, inv_path)  # requires `import os`
             devices_hostname, devices_ip, devices_ostype, devices_username, devices_password, devices_enable_password = netmiko_get_devices_array.get_device_data(
-                inputInventory, inputDevices)
-            devices_password = sha256_crypt.encrypt(devices_password)
-            devices_enable_password = sha256_crypt.encrypt(devices_enable_password)
+                original_inv_path, inputDevices)
             if ((devices_username != inputUsername) or (
                     sha256_crypt.verify(inputPassword, devices_password) != True) or (
                     sha256_crypt.verify(inputEnablePassword, devices_enable_password) != True)):
-                os.remove(inputInventory)
                 flash("These are not the credentials from the inventory file! Please reconfigure the file accordingly.")
 
             inputType = request.form['inputType']
@@ -1654,7 +1650,6 @@ def find_template(template_type):
                 elif inputFeature == 'vlan':
                     inputVLAN = request.form['inputVLAN']
                     if check_range(inputVLAN) == 0:
-                        os.remove(inputInventory)
                         flash("The VLAN is not a number or it is not a range of numbers!")
                     else:
                         item = inputFeature + ' ' + inputVLAN
@@ -1700,7 +1695,6 @@ def find_template(template_type):
 
                 output = stp.do_stp(devices_ip, devices_ostype, devices_username, inputPassword,
                                     inputEnablePassword, inputType, vars_array)
-                os.remove(inputInventory)
                 flash(output)
 
 
@@ -1734,7 +1728,6 @@ def find_template(template_type):
                     elif inputInterfaceMST == 'instance port-priority':
                         inputIntMST = request.form['inputIntMST']
                         if check_range(inputIntMST) == 0:
-                            os.remove(inputInventory)
                             flash("This is not a valid Interface MST range!")
                         else:
                             inputIntMSTPortpriority = request.form['inputIntMSTPortpriority']
@@ -1751,7 +1744,6 @@ def find_template(template_type):
 
                 output = stp.do_stp(devices_ip, devices_ostype, devices_username, inputPassword, inputEnablePassword,
                                     inputType, vars_array)
-                os.remove(inputInventory)
                 flash(output)
 
         elif template_type == "NTP":
@@ -1768,24 +1760,22 @@ def find_template(template_type):
                 flash('Password is required!')
             elif not inputEnablePassword:
                 flash('Enable password is required!')
-            if inputInventory:
-                inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
-            if not inputDevices:
+            elif not inputDevices:
                 flash('Devices are required!')
             elif not inputNTPServer:
                 flash('NTP server option is required!')
             else:
+                inv_path = 'templates/myscripts/inventories/' + inputInventory
+                original_inv_path = os.path.join(ROOT_DIR, inv_path)  # requires `import os`
                 devices_hostname, devices_ip, devices_ostype, devices_username, devices_password, devices_enable_password = netmiko_get_devices_array.get_device_data(
-                    inputInventory, inputDevices)
-                devices_password = sha256_crypt.encrypt(devices_password)
-                devices_enable_password = sha256_crypt.encrypt(devices_enable_password)
+                    original_inv_path, inputDevices)
                 if ((devices_username != inputUsername) or (
                         sha256_crypt.verify(inputPassword, devices_password) != True) or (
                         sha256_crypt.verify(inputEnablePassword, devices_enable_password) != True)):
-                    os.remove(inputInventory)
                     flash(
                         "These are not the credentials from the inventory file! Please reconfigure the file accordingly.")
                 else:
+                    inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
                     # run playbook here
                     ansible_cmd = ""
                     if inputNTPServer == 'Yes server':
@@ -1837,24 +1827,22 @@ def find_template(template_type):
                 flash('Password is required!')
             elif not inputEnablePassword:
                 flash('Enable password is required!')
-            if inputInventory:
-                inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
-            if not inputDevices:
+            elif not inputDevices:
                 flash('Devices are required!')
             elif not inputUserType:
                 flash('User type is required!')
             else:
+                inv_path = 'templates/myscripts/inventories/' + inputInventory
+                original_inv_path = os.path.join(ROOT_DIR, inv_path)  # requires `import os`
                 devices_hostname, devices_ip, devices_ostype, devices_username, devices_password, devices_enable_password = netmiko_get_devices_array.get_device_data(
-                    inputInventory, inputDevices)
-                devices_password = sha256_crypt.encrypt(devices_password)
-                devices_enable_password = sha256_crypt.encrypt(devices_enable_password)
+                    original_inv_path, inputDevices)
                 if ((devices_username != inputUsername) or (
                         sha256_crypt.verify(inputPassword, devices_password) != True) or (
                         sha256_crypt.verify(inputEnablePassword, devices_enable_password) != True)):
-                    os.remove(inputInventory)
                     flash(
                         "These are not the credentials from the inventory file! Please reconfigure the file accordingly.")
                 else:
+                    inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
                     ansible_cmd = ""
                     if inputUserType == "create_new_user_password":
                         inputUser = request.form['inputUser']
@@ -1918,26 +1906,24 @@ def find_template(template_type):
                 flash('Password is required!')
             elif not inputEnablePassword:
                 flash('Enable password is required!')
-            if inputInventory:
-                inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
-            if not inputDevices:
+            elif not inputDevices:
                 flash('Devices are required!')
             elif not inputTFTPServer:
                 flash('TFTP server is required!')
             elif validate_ip_address(inputTFTPServer) == False:
                 flash('That is not a valid IP address for TFTP server!')
             else:
+                inv_path = 'templates/myscripts/inventories/' + inputInventory
+                original_inv_path = os.path.join(ROOT_DIR, inv_path)  # requires `import os`
                 devices_hostname, devices_ip, devices_ostype, devices_username, devices_password, devices_enable_password = netmiko_get_devices_array.get_device_data(
-                    inputInventory, inputDevices)
-                devices_password = sha256_crypt.encrypt(devices_password)
-                devices_enable_password = sha256_crypt.encrypt(devices_enable_password)
+                    original_inv_path, inputDevices)
                 if ((devices_username != inputUsername) or (
                         sha256_crypt.verify(inputPassword, devices_password) != True) or (
                         sha256_crypt.verify(inputEnablePassword, devices_enable_password) != True)):
-                    os.remove(inputInventory)
                     flash(
                         "These are not the credentials from the inventory file! Please reconfigure the file accordingly.")
                 else:
+                    inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
                     my_hostnames, my_ips, my_src_files, my_dest_files = netmiko_get_devices_array.get_device_src_dest_transfer_files(
                         inputInventory, inputDevices)
                     if len(my_hostnames) == len(my_ips) == len(my_src_files) == len(my_dest_files):
@@ -1968,26 +1954,24 @@ def find_template(template_type):
                 flash('Password is required!')
             elif not inputEnablePassword:
                 flash('Enable password is required!')
-            if inputInventory:
-                inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
-            if not inputDevices:
+            elif not inputDevices:
                 flash('Devices are required!')
             elif not inputFTPServer:
                 flash('FTP server is required!')
             elif validate_ip_address(inputFTPServer) == False:
                 flash('That is not a valid IP address for TFTP server!')
             else:
+                inv_path = 'templates/myscripts/inventories/' + inputInventory
+                original_inv_path = os.path.join(ROOT_DIR, inv_path)  # requires `import os`
                 devices_hostname, devices_ip, devices_ostype, devices_username, devices_password, devices_enable_password = netmiko_get_devices_array.get_device_data(
-                    inputInventory, inputDevices)
-                devices_password = sha256_crypt.encrypt(devices_password)
-                devices_enable_password = sha256_crypt.encrypt(devices_enable_password)
+                    original_inv_path, inputDevices)
                 if ((devices_username != inputUsername) or (
                         sha256_crypt.verify(inputPassword, devices_password) != True) or (
                         sha256_crypt.verify(inputEnablePassword, devices_enable_password) != True)):
-                    os.remove(inputInventory)
                     flash(
                         "These are not the credentials from the inventory file! Please reconfigure the file accordingly.")
                 else:
+                    inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
                     my_hostnames, my_ips, my_src_files, my_dest_files = netmiko_get_devices_array.get_device_src_dest_transfer_files(
                         inputInventory, inputDevices)
                     if len(my_hostnames) == len(my_ips) == len(my_src_files) == len(my_dest_files):
@@ -2025,24 +2009,22 @@ def find_template(template_type):
                 flash('Password is required!')
             elif not inputEnablePassword:
                 flash('Enable password is required!')
-            if inputInventory:
-                inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
-            if not inputDevices:
+            elif not inputDevices:
                 flash('Devices are required!')
             elif not inputType:
                 flash('Type is required!')
             else:
+                inv_path = 'templates/myscripts/inventories/' + inputInventory
+                original_inv_path = os.path.join(ROOT_DIR, inv_path)  # requires `import os`
                 devices_hostname, devices_ip, devices_ostype, devices_username, devices_password, devices_enable_password = netmiko_get_devices_array.get_device_data(
-                    inputInventory, inputDevices)
-                devices_password = sha256_crypt.encrypt(devices_password)
-                devices_enable_password = sha256_crypt.encrypt(devices_enable_password)
+                    original_inv_path, inputDevices)
                 if ((devices_username != inputUsername) or (
                         sha256_crypt.verify(inputPassword, devices_password) != True) or (
                         sha256_crypt.verify(inputEnablePassword, devices_enable_password) != True)):
-                    os.remove(inputInventory)
                     flash(
                         "These are not the credentials from the inventory file! Please reconfigure the file accordingly.")
                 else:
+                    inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
                     my_hostnames, my_ips, my_src_files, my_dest_files = netmiko_get_devices_array.get_device_src_dest_transfer_files(
                         inputInventory, inputDevices)
                     if inputType == "enable_ospf":
@@ -2280,24 +2262,22 @@ def find_template(template_type):
                 flash('Password is required!')
             elif not inputEnablePassword:
                 flash('Enable password is required!')
-            if inputInventory:
-                inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
-            if not inputDevices:
+            elif not inputDevices:
                 flash('Devices are required!')
             elif not inputType:
                 flash('Type is required!')
             else:
+                inv_path = 'templates/myscripts/inventories/' + inputInventory
+                original_inv_path = os.path.join(ROOT_DIR, inv_path)  # requires `import os`
                 devices_hostname, devices_ip, devices_ostype, devices_username, devices_password, devices_enable_password = netmiko_get_devices_array.get_device_data(
-                    inputInventory, inputDevices)
-                devices_password = sha256_crypt.encrypt(devices_password)
-                devices_enable_password = sha256_crypt.encrypt(devices_enable_password)
+                    original_inv_path, inputDevices)
                 if ((devices_username != inputUsername) or (
                         sha256_crypt.verify(inputPassword, devices_password) != True) or (
                         sha256_crypt.verify(inputEnablePassword, devices_enable_password) != True)):
-                    os.remove(inputInventory)
                     flash(
                         "These are not the credentials from the inventory file! Please reconfigure the file accordingly.")
                 else:
+                    inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
                     if inputFeature == "access_list_permit":
                         inputPermit = request.form['inputPermit']
                         permit_list = split_string(inputPermit)
@@ -2373,26 +2353,24 @@ def find_template(template_type):
                 flash('Password is required!')
             elif not inputEnablePassword:
                 flash('Enable password is required!')
-            if inputInventory:
-                inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
-            if not inputDevices:
+            elif not inputDevices:
                 flash('Devices are required!')
             elif not inputType:
                 flash('Type is required!')
             else:
+                inv_path = 'templates/myscripts/inventories/' + inputInventory
+                original_inv_path = os.path.join(ROOT_DIR, inv_path)  # requires `import os`
                 devices_hostname, devices_ip, devices_ostype, devices_username, devices_password, devices_enable_password = netmiko_get_devices_array.get_device_data(
-                    inputInventory, inputDevices)
-                devices_password = sha256_crypt.encrypt(devices_password)
-                devices_enable_password = sha256_crypt.encrypt(devices_enable_password)
+                    original_inv_path, inputDevices)
                 if ((devices_username != inputUsername) or (
                         sha256_crypt.verify(inputPassword, devices_password) != True) or (
                         sha256_crypt.verify(inputEnablePassword, devices_enable_password) != True)):
                     flash(
                         "These are not the credentials from the inventory file! Please reconfigure the file accordingly.")
-                # elif napalm_retrieve_info.check_interface(inputInterface, devices_ip, devices_ostype, devices_username, devices_password, devices_enable_password) != 1:
-                #     flash('The connection failed or that is not a valid common interface!')
-                    os.remove(inputInventory)
+                    # elif napalm_retrieve_info.check_interface(inputInterface, devices_ip, devices_ostype, devices_username, devices_password, devices_enable_password) != 1:
+                    #     flash('The connection failed or that is not a valid common interface!')
                 else:
+                    inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
                     if inputType == "sw_mode_access":
                         inputVLANid = request.form['inputVLANid']
                         play_path = scripts_path + 'dtp.yaml'
@@ -2429,9 +2407,7 @@ def find_template(template_type):
                 flash('Password is required!')
             elif not inputEnablePassword:
                 flash('Enable password is required!')
-            if inputInventory:
-                inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
-            if not inputDevices:
+            elif not inputDevices:
                 flash('Devices are required!')
             elif not inputExcludeFromIP:
                 flash('Exclude From IP is required!')
@@ -2448,27 +2424,27 @@ def find_template(template_type):
             elif not inputDefaultRouter:
                 flash('Default Router is required!')
             else:
+                inv_path = 'templates/myscripts/inventories/' + inputInventory
+                original_inv_path = os.path.join(ROOT_DIR, inv_path)  # requires `import os`
                 devices_hostname, devices_ip, devices_ostype, devices_username, devices_password, devices_enable_password = netmiko_get_devices_array.get_device_data(
-                    inputInventory, inputDevices)
-                devices_password = sha256_crypt.encrypt(devices_password)
-                devices_enable_password = sha256_crypt.encrypt(devices_enable_password)
+                    original_inv_path, inputDevices)
                 if ((devices_username != inputUsername) or (
                         sha256_crypt.verify(inputPassword, devices_password) != True) or (
                         sha256_crypt.verify(inputEnablePassword, devices_enable_password) != True)):
                     flash(
                         "These are not the credentials from the inventory file! Please reconfigure the file accordingly.")
-                # elif napalm_retrieve_info.check_interface(inputInterface, devices_ip, devices_ostype, devices_username, devices_password, devices_enable_password) != 1:
-                #     flash('The connection failed or that is not a valid common interface!')
-                    os.remove(inputInventory)
+                    # elif napalm_retrieve_info.check_interface(inputInterface, devices_ip, devices_ostype, devices_username, devices_password, devices_enable_password) != 1:
+                    #     flash('The connection failed or that is not a valid common interface!')
                 else:
+                    inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
                     if inputLeaseOption == "days":
                         inputLease = request.form['inputLease']
                     elif inputLeaseOption == "infinite":
                         inputLease = "infinite"
                     if validate_ip_address(inputExcludeFromIP) == False or validate_ip_address(
                             inputExcludeToIP) == False or validate_ip_address(
-                            inputNetworkIP) == False or validate_ip_address(
-                            inputNetworkMask) == False or validate_ip_address(inputDefaultRouter) == False:
+                        inputNetworkIP) == False or validate_ip_address(
+                        inputNetworkMask) == False or validate_ip_address(inputDefaultRouter) == False:
                         flash("One of the IP addresses you introduced are not right!")
                         os.remove(inputInventory)
                         return redirect(request.url)
@@ -2482,7 +2458,6 @@ def find_template(template_type):
                         flash(output)
                         os.remove(inputInventory)
                         return redirect(request.url)
-
 
     return MyView().render('admin/forms/{0}.html'.format(template_type), template_type=template_type,
                            inventories=inventories, elements=myDict, elements2=devicesDict)
@@ -2608,6 +2583,7 @@ def build_sample_db():
         template10 = Template(name='STP')
         template11 = Template(name='Syslog')
         template12 = Template(name='TFTP')
+        template13 = Template(name='ShowBackups')
         template14 = Template(name='VTYconsole')
         template15 = Template(name='Autosecure')
         template16 = Template(name='DAI')
@@ -2633,6 +2609,7 @@ def build_sample_db():
         db.session.add(template10)
         db.session.add(template11)
         db.session.add(template12)
+        db.session.add(template13)
         db.session.add(template14)
         db.session.add(template15)
         db.session.add(template16)

@@ -8,3 +8,5 @@ Flask_User
 netmiko==3.3.3
 napalm==3.2.0
 requests
+ncclient==0.6.9
+ansible==2.9.6
