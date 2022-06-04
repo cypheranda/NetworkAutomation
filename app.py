@@ -1458,7 +1458,6 @@ def find_template(template_type):
             inputInventory = request.form['inputInventory']
             inputDevices = request.form['inputDevices']
             inputSNMPOption = request.form['inputSNMPOption']
-            inputLoadOption = request.form['inputLoadOption']
 
             if not inputUsername:
                 flash('Username is required!')
@@ -1472,8 +1471,6 @@ def find_template(template_type):
                 flash('Devices are required!')
             elif not inputSNMPOption:
                 flash('SNMPv3 option is required!')
-            elif not inputLoadOption:
-                flash('Load option is required!')
             else:
                 devices_hostname, devices_ip, devices_ostype, devices_username, devices_password, devices_enable_password = netmiko_get_devices_array.get_device_data(
                     inputInventory, inputDevices)
@@ -1497,6 +1494,7 @@ def find_template(template_type):
                         ansible_cmd = "ansible-playbook -i {0} {2} --extra-vars \"variable_host={1}\"".format(
                             inputInventory, inputDevices, play_path)
                     elif inputSNMPOption == "load":
+                        inputLoadOption = request.form['inputLoadOption']
                         play_path = scripts_path + 'ios_snmpv3_config.yaml'
                         ansible_cmd = "ansible-playbook -i {0} {3} --extra-vars \"variable_host={1} state=\"{2}\"\"".format(
                             inputInventory, inputDevices, inputLoadOption, play_path)
