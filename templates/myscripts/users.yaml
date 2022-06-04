@@ -8,7 +8,6 @@
     - name: Create a new user with a password/secret
       become: yes
       become_method: enable
-      become_user: admin
       ios_user:
         name: "{{ new_user }}"
         password_type: "{{ password_type }}"
@@ -21,7 +20,6 @@
     - name: Remove these listed users
       become: yes
       become_method: enable
-      become_user: admin
       ios_user:
         name: "{{ to_remove_user }}"
         state: absent

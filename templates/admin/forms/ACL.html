@@ -58,33 +58,32 @@
     <div class="form-group row">
             <label for="inputACLOption" data-live-search="true" class="col-sm-2 col-form-label">Choose what to do</label>
             <div class="col-sm-10">
-                <select required="required" class="custom-select my-1 mr-sm-2" name="inputACLOption" id="inputACLOption" value="{{ request.form['inputACLOption'] }}"  onchange="myFunction2()">
+                <select id = "myAns" name="inputACLOption" value="{{ request.form['inputACLOption'] }}" onchange = "verifyAnswer()" >
                     <option value="">Choose...</option>
                         <option value="gather">Gather and store acl configuration</option>
                     <option value="deleteall">Delete full acl configuration</option>
                     <option value="deleteafi">Delete afi(ipv4 or 6) acl configuration</option>
                     <option value="load">Load acl configuration</option>
-                  </select>
+</select>
             </div>
           </div>
     <div class="form-group row">
             <label for="inputAFI" data-live-search="true" class="col-sm-2 col-form-label">AFI</label>
             <div class="col-sm-10">
-                <select required="required" class="custom-select my-1 mr-sm-2" name="inputAFI" id="inputAFI" value="{{ request.form['inputAFI'] }}" style="display:none" onchange="showHiddenSelect3();">
+                <select required="required" class="custom-select my-1 mr-sm-2" name="inputAFI" id="inputAFI" value="{{ request.form['inputAFI'] }}" disabled onchange="showHiddenSelect3();">
                     <option value="">Choose...</option>
-                        <option style="display:none" name="ipv4" id="ipv4" value="ipv4">IPv4</option>
-                        <option style="display:none" name="ipv6" id="ipv6" value="ipv6">IPv6</option>
+                        <option name="ipv4" id="ipv4" value="ipv4">IPv4</option>
+                        <option name="ipv6" id="ipv6" value="ipv6">IPv6</option>
                   </select>
             </div>
-          </div>
+        </div>
     <div class="form-group row">
-            <label for="inputLoadOption" class="col-sm-2 col-form-label">Choose how to load your file, choose either if you chose not to load</label>
+            <label for="inputLoadOption" class="col-sm-2 col-form-label">Choose how to load your file that you had already copied</label>
             <div class="col-sm-10">
-              <input type="radio" required name="inputLoadOption" id="merged" value="merged"> Merge </input>
-                <input type="radio" name="inputLoadOption" id="inputLoadOption" value="replaced"> Replace </input>
-                <input type="radio" name="inputLoadOption" id="inputLoadOption" value="overridden"> Override </input>
-                <input type="radio" name="inputLoadOption" id="inputLoadOption" value="rendered"> Render </input>
-                <input type="radio" name="inputLoadOption" id="inputLoadOption" value="deleted"> Delete </input>
+                <label> <input type="radio" name="inputLoadOption" id="merged" value= "merged"> Merge </label>
+                <label> <input type="radio" name="inputLoadOption" id="replaced" value= "replaced"> Replace </label>
+                <label> <input type="radio" name="inputLoadOption" id="overridden" value= "overridden"> Override
+          </label>
             </div>
           </div>
                       <div class="form-group row">
@@ -121,17 +120,31 @@
 function myFunction() {
     document.getElementById('inputDevices').style.display='block';
 }
-function myFunction2() {
-    if (document.getElementById('inputACLOption').value == "deleteafi"){
-        document.getElementById('inputAFI').style.display='block';
-        document.getElementById('ipv4').style.display='block';
-        document.getElementById('ipv6').style.display='block';
-    }
-    else {
-        document.getElementById('inputAFI').style.display='none';
-        document.getElementById('ipv4').style.display='none';
-        document.getElementById('ipv6').style.display='none';
-    }
+
+    function verifyAnswer() {
+//get the selected value from the dropdown list
+var mylist = document.getElementById("myAns");
+var result = mylist.options[mylist.selectedIndex].text;
+  if (result == 'Load acl configuration') {
+  	//disable all the radio button
+    document.getElementById("inputAFI").setAttribute("disabled", "disabled");
+	document.getElementById("merged").disabled = false;
+  	document.getElementById("overridden").disabled = false;
+  	document.getElementById("replaced").disabled = false;
+  }
+  else if (result == 'Delete afi(ipv4 or 6) acl configuration') {
+  	//disable all the radio button
+    document.getElementById("inputAFI").removeAttribute("disabled");
+  	document.getElementById("merged").disabled = true;
+  	document.getElementById("overridden").disabled = true;
+  	document.getElementById("replaced").disabled = true;
+  } else {
+  	//enable all the radio button
+    document.getElementById("inputAFI").setAttribute("disabled", "disabled");
+  	document.getElementById("merged").disabled = true;
+  	document.getElementById("overridden").disabled = true;
+  	document.getElementById("replaced").disabled = true;
+  }
 }
 
     </script>

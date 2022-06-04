@@ -1,4 +1,3 @@
-
 from napalm import get_network_driver
 import json
 import sys

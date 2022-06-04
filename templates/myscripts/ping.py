@@ -1,19 +1,18 @@
 import os
 import signal
-import time
 
+import os
 
 def do_ping(device_ip):
+    response = os.system("ping -c 1 " + device_ip)
     ping_code = ""
-
-    output = os.popen(f"ping {device_ip} -w 1").read()
-
-    if "Request timed out" in output:
-        ping_code="Request timed out"
-    elif "Destination host unreachable" in output:
-        ping_code="Destination host unreachable"
+    #and then check the response...
+    if response == 0:
+      ping_code="Successful ping to host!"
     else:
-        ping_code="Successful ping to host!"
+      ping_code="Destination host unreachable!"
 
     return ping_code
 
+
+# print(do_ping("192.168.122.16"))

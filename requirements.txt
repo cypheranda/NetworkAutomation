@@ -5,8 +5,6 @@ Flask-Security>=1.7.5
 enum34==1.1.6
 email_validator
 Flask_User
-netmiko
+netmiko==3.3.3
+napalm==3.2.0
 requests
-napalm
-# de instalat
-# ansible-galaxy collection install cisco.ios

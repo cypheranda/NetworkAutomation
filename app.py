@@ -660,6 +660,8 @@ def find_template(template_type):
             devicesDict[device_category] = device_hostnames
 
     if request.method == 'POST':
+        path = 'templates/myscripts/'
+        scripts_path = os.path.join(ROOT_DIR, path)
         if template_type == "Autosecure":
             inputUsername = request.form['inputUsername']
             inputPassword = request.form['inputPassword']
@@ -1057,11 +1059,13 @@ def find_template(template_type):
                         "These are not the credentials from the inventory file! Please reconfigure the file accordingly.")
                 else:
                     # run playbook here
-                    ansible_cmd = "ansible-playbook -i {0} set_hostnames.yaml --extra-vars \"variable_host={1}\"".format(
-                        inputInventory, inputDevices)
+                    play_path = scripts_path + 'set_hostnames.yaml'
+                    ansible_cmd = "ansible-playbook -i {0} {2} --extra-vars \"variable_host={1}\"".format(
+                        inputInventory, inputDevices, play_path)
                     # to run this cmd
-                    os.remove(inputInventory)
+
                     output = os.popen(ansible_cmd).read()
+                    os.remove(inputInventory)
                     flash(output)
                     return redirect(request.url)
 
@@ -1098,12 +1102,14 @@ def find_template(template_type):
                         "These are not the credentials from the inventory file! Please reconfigure the file accordingly.")
                 else:
                     # run playbook here
-                    ansible_cmd = "ansible-playbook -i {0} set_domain_name.yaml --extra-vars \"variable_host={1} domain_name=\'{2}\'\"".format(
-                        inputInventory, inputDevices, inputDomainName)
+                    play_path = scripts_path + 'set_domain_name.yaml'
+                    ansible_cmd = "ansible-playbook -i {0} {3} --extra-vars \"variable_host={1} domain_name=\'{2}\'\"".format(
+                        inputInventory, inputDevices, inputDomainName, play_path)
                     # to run this cmd
-                    os.remove(inputInventory)
+
                     output = os.popen(ansible_cmd).read()
                     flash(output)
+                    os.remove(inputInventory)
                     # flash(ansible_cmd)
                     return redirect(request.url)
 
@@ -1237,13 +1243,14 @@ def find_template(template_type):
                         incoming_tag = "incoming"
                         incoming_state = "present"
 
-                    ansible_cmd = "ansible-playbook -i {0} ios_banner_config.yaml --tags \"{2},{3},{4},{5}\" --extra-vars \"variable_host={1} motd_banner=\'{6}\' motd_state=\'{7}\' login_banner=\'{8}\' login_state=\'{9}\' exec_banner=\'{10}\' exec_state=\'{11}\' incoming_banner=\'{12}\' incoming_state=\'{13}\'\"".format(
+                    play_path = scripts_path + 'ios_banner_config.yaml'
+                    ansible_cmd = "ansible-playbook -i {0} {14} --tags \"{2},{3},{4},{5}\" --extra-vars \"variable_host={1} motd_banner=\'{6}\' motd_state=\'{7}\' login_banner=\'{8}\' login_state=\'{9}\' exec_banner=\'{10}\' exec_state=\'{11}\' incoming_banner=\'{12}\' incoming_state=\'{13}\'\"".format(
                         inputInventory, inputDevices, motd_tag, login_tag, exec_tag, incoming_tag, inputMOTDBanner,
                         motd_state, inputLoginBanner, login_state, inputExecBanner, exec_state, inputIncomingBanner,
-                        incoming_state)
+                        incoming_state, play_path)
                     # to run this cmd
-                    os.remove(inputInventory)
                     output = os.popen(ansible_cmd).read()
+                    os.remove(inputInventory)
                     flash(output)
                     # flash(ansible_cmd)
                     return redirect(request.url)
@@ -1295,12 +1302,13 @@ def find_template(template_type):
                         "These are not the credentials from the inventory file! Please reconfigure the file accordingly.")
                 else:
                     # run playbook here
-                    ansible_cmd = "ansible-playbook -i {0} syslog_config.yaml --tags \"set_syslog_server,set_facility,set_trap_level\" --extra-vars \"variable_host={1} timestamps_type=\'{2}\' datetime_choice=\'{3}\' syslog_server=\'{4}\' facility_type=\'{5}\' trap_level=\'{6}\'\"".format(
+                    play_path = scripts_path + 'syslog_config.yaml'
+                    ansible_cmd = "ansible-playbook -i {0} {7} --tags \"set_syslog_server,set_facility,set_trap_level\" --extra-vars \"variable_host={1} timestamps_type=\'{2}\' datetime_choice=\'{3}\' syslog_server=\'{4}\' facility_type=\'{5}\' trap_level=\'{6}\'\"".format(
                         inputInventory, inputDevices, inputTimestamps, inputDatetime, inputSyslogServer, inputFacility,
-                        inputTrap)
+                        inputTrap, play_path)
                     # to run this cmd
-                    os.remove(inputInventory)
                     output = os.popen(ansible_cmd).read()
+                    os.remove(inputInventory)
                     flash(output)
                     # flash(ansible_cmd)
                     return redirect(request.url)
@@ -1335,11 +1343,12 @@ def find_template(template_type):
                         "These are not the credentials from the inventory file! Please reconfigure the file accordingly.")
                 else:
                     # run playbook here
-                    ansible_cmd = "ansible-playbook -i {0} save_config.yaml --tags \"save_config\" --extra-vars \"variable_host={1}\"".format(
-                        inputInventory, inputDevices)
+                    play_path = scripts_path + 'save_config.yaml'
+                    ansible_cmd = "ansible-playbook -i {0} {2} --tags \"save_config\" --extra-vars \"variable_host={1}\"".format(
+                        inputInventory, inputDevices, play_path)
                     # to run this cmd
-                    os.remove(inputInventory)
                     output = os.popen(ansible_cmd).read()
+                    os.remove(inputInventory)
                     flash(output)
                     # flash(ansible_cmd)
                     return redirect(request.url)
@@ -1388,8 +1397,9 @@ def find_template(template_type):
                         possible_error2 = netmiko_scp.check_scp(inputInventory, inputDevices, devices_ip, devices_ostype,
                                                                 devices_username, inputPassword, inputEnablePassword)
                         if possible_error2 == None:
-                            ansible_cmd = "ansible-playbook -i {0} ios_load_config.yaml --extra-vars \"variable_host={1}\"".format(
-                                inputInventory, inputDevices)
+                            play_path = scripts_path + 'ios_load_config.yaml'
+                            ansible_cmd = "ansible-playbook -i {0} {2} --extra-vars \"variable_host={1}\"".format(
+                                inputInventory, inputDevices, play_path)
                             # to run this cmd
                             os.remove(inputInventory)
                             output = os.popen(ansible_cmd).read()
@@ -1431,11 +1441,12 @@ def find_template(template_type):
                         "These are not the credentials from the inventory file! Please reconfigure the file accordingly.")
                 else:
                     # run playbook here
-                    ansible_cmd = "ansible-playbook -i {0} ios_config_backup.yaml --extra-vars \"variable_host={1}\"".format(
-                        inputInventory, inputDevices)
+                    play_path = scripts_path + 'ios_config_backup.yaml'
+                    ansible_cmd = "ansible-playbook -i {0} {2} --extra-vars \"variable_host={1}\"".format(
+                        inputInventory, inputDevices, play_path)
                     # to run this cmd
-                    os.remove(inputInventory)
                     output = os.popen(ansible_cmd).read()
+                    os.remove(inputInventory)
                     flash(output)
                     # flash(ansible_cmd)
                     return redirect(request.url)
@@ -1478,17 +1489,20 @@ def find_template(template_type):
                     # run playbook here
                     ansible_cmd = ""
                     if inputSNMPOption == "gather":
-                        ansible_cmd = "ansible-playbook -i {0} ios_snmpv3_gatherfacts.yaml --extra-vars \"variable_host={1}\"".format(
-                            inputInventory, inputDevices)
+                        play_path = scripts_path + 'ios_snmpv3_gatherfacts.yaml'
+                        ansible_cmd = "ansible-playbook -i {0} {2} --extra-vars \"variable_host={1}\"".format(
+                            inputInventory, inputDevices, play_path)
                     elif inputSNMPOption == "delete":
-                        ansible_cmd = "ansible-playbook -i {0} ios_snmpv3_deleteall.yaml --extra-vars \"variable_host={1}\"".format(
-                            inputInventory, inputDevices)
+                        play_path = scripts_path + 'ios_snmpv3_deleteall.yaml'
+                        ansible_cmd = "ansible-playbook -i {0} {2} --extra-vars \"variable_host={1}\"".format(
+                            inputInventory, inputDevices, play_path)
                     elif inputSNMPOption == "load":
-                        ansible_cmd = "ansible-playbook -i {0} ios_snmpv3_config.yaml --extra-vars \"variable_host={1} state=\"{2}\"\"".format(
-                            inputInventory, inputDevices, inputLoadOption)
+                        play_path = scripts_path + 'ios_snmpv3_config.yaml'
+                        ansible_cmd = "ansible-playbook -i {0} {3} --extra-vars \"variable_host={1} state=\"{2}\"\"".format(
+                            inputInventory, inputDevices, inputLoadOption, play_path)
                     # to run this cmd
-                    os.remove(inputInventory)
                     output = os.popen(ansible_cmd).read()
+                    os.remove(inputInventory)
                     flash(output)
                     # flash(ansible_cmd)
                     return redirect(request.url)
@@ -1500,8 +1514,6 @@ def find_template(template_type):
             inputInventory = request.form['inputInventory']
             inputDevices = request.form['inputDevices']
             inputACLOption = request.form['inputACLOption']
-            inputLoadOption = request.form['inputLoadOption']
-            inputAFI = request.form['inputAFI']
 
             if not inputUsername:
                 flash('Username is required!')
@@ -1513,12 +1525,6 @@ def find_template(template_type):
                 inputInventory = adjust_file(inputInventory, inputPassword, inputEnablePassword)
             if not inputDevices:
                 flash('Devices are required!')
-            elif not inputACLOption:
-                flash('ACL option is required!')
-            elif not inputLoadOption:
-                flash('Load option is required!')
-            elif not inputAFI:
-                flash('AFI is required!')
             else:
                 devices_hostname, devices_ip, devices_ostype, devices_username, devices_password, devices_enable_password = netmiko_get_devices_array.get_device_data(
                     inputInventory, inputDevices)
@@ -1534,17 +1540,23 @@ def find_template(template_type):
                     # run playbook here
                     ansible_cmd = ""
                     if inputACLOption == "gather":
-                        ansible_cmd = "ansible-playbook -i {0} ios_acl_gatherfacts.yaml --extra-vars \"variable_host={1}\"".format(
-                            inputInventory, inputDevices)
+                        play_path = scripts_path + 'ios_acl_gatherfacts.yaml'
+                        ansible_cmd = "ansible-playbook -i {0} {2} --extra-vars \"variable_host={1}\"".format(
+                            inputInventory, inputDevices, play_path)
                     elif inputACLOption == "deleteall":
-                        ansible_cmd = "ansible-playbook -i {0} ios_acl_deleteall.yaml --extra-vars \"variable_host={1}\"".format(
-                            inputInventory, inputDevices)
+                        play_path = scripts_path + 'ios_acl_deleteall.yaml'
+                        ansible_cmd = "ansible-playbook -i {0} {2} --extra-vars \"variable_host={1}\"".format(
+                            inputInventory, inputDevices, play_path)
                     elif inputACLOption == "load":
-                        ansible_cmd = "ansible-playbook -i {0} ios_acl_config.yaml --extra-vars \"variable_host={1} state=\"{2}\"\"".format(
-                            inputInventory, inputDevices, inputLoadOption)
+                        inputLoadOption = request.form['inputLoadOption']
+                        play_path = scripts_path + 'ios_acl_config.yaml'
+                        ansible_cmd = "ansible-playbook -i {0} {3} --extra-vars \"variable_host={1} state=\"{2}\"\"".format(
+                            inputInventory, inputDevices, inputLoadOption, play_path)
                     elif inputACLOption == "deleteafi":
-                        ansible_cmd = "ansible-playbook -i {0} ios_acl_deleteafi.yaml --extra-vars \"variable_host={1} afi_type=\"{2}\"\"".format(
-                            inputInventory, inputDevices, inputAFI)
+                        inputAFI = request.form['inputAFI']
+                        play_path = scripts_path + 'ios_acl_deleteafi.yaml'
+                        ansible_cmd = "ansible-playbook -i {0} {3} --extra-vars \"variable_host={1} afi_type=\"{2}\"\"".format(
+                            inputInventory, inputDevices, inputAFI, play_path)
                     # to run this cmd
                     output = os.popen(ansible_cmd).read()
                     os.remove(inputInventory)
@@ -1787,16 +1799,18 @@ def find_template(template_type):
                         time = server_now.strftime("%H:%M:%S")
                         tag = "ntp_server"
 
-                        ansible_cmd = "ansible-playbook -i {0} ntp_config.yaml -t \"{6}\" --extra-vars \"variable_host={1} time=\"{2}\" day=\"{3}\" month=\"{4}\" year=\"{5}\"\"".format(
-                            inputInventory, inputDevices, time, day, month, year, tag)
+                        play_path = scripts_path + 'ntp_config.yaml'
+                        ansible_cmd = "ansible-playbook -i {0} {7} -t \"{6}\" --extra-vars \"variable_host={1} time=\"{2}\" day=\"{3}\" month=\"{4}\" year=\"{5}\"\"".format(
+                            inputInventory, inputDevices, time, day, month, year, tag, play_path)
                     elif inputNTPServer == 'No server':
                         inputNTPClient = request.form['inputNTPClient']
                         if inputNTPClient == 'Yes client':
                             inputClientServer = request.form['inputClientServer']
                             if validate_ip_address(inputClientServer) == True:
                                 tag = "ntp_client"
-                                ansible_cmd = "ansible-playbook -i {0} ntp_config.yaml -t \"{3}\" --extra-vars \"variable_host={1} server_ip=\"{2}\"\"".format(
-                                    inputInventory, inputDevices, inputClientServer, tag)
+                                play_path = scripts_path + 'ntp_config.yaml'
+                                ansible_cmd = "ansible-playbook -i {0} {4} -t \"{3}\" --extra-vars \"variable_host={1} server_ip=\"{2}\"\"".format(
+                                    inputInventory, inputDevices, inputClientServer, tag, play_path)
                                 flash(ansible_cmd)
                             else:
                                 os.remove(inputInventory)
@@ -1853,20 +1867,24 @@ def find_template(template_type):
                             os.remove(inputInventory)
                             flash("The passwords to be set do not match!")
                         else:
-                            ansible_cmd = "ansible-playbook -i {0} users.yaml --tags \"create_new_user_password\" --extra-vars \"variable_host={1} new_user=\'{2}\' password_type=\'{3}\' new_password=\'{4}\'\"".format(
-                                inputInventory, inputDevices, inputUser, inputPasswordType, inputPassword)
+                            play_path = scripts_path + 'users.yaml'
+                            ansible_cmd = "ansible-playbook -i {0} {5} --tags \"create_new_user_password\" --extra-vars \"variable_host={1} new_user=\'{2}\' password_type=\'{3}\' new_password=\'{4}\'\"".format(
+                                inputInventory, inputDevices, inputUser, inputPasswordType, inputPassword, play_path)
                     elif inputUserType == "remove_all_users":
-                        ansible_cmd = "ansible-playbook -i {0} users.yaml --tags \"remove_all_users\" --extra-vars \"variable_host={1}\"".format(
-                            inputInventory, inputDevices)
+                        play_path = scripts_path + 'users.yaml'
+                        ansible_cmd = "ansible-playbook -i {0} {2} --tags \"remove_all_users\" --extra-vars \"variable_host={1}\"".format(
+                            inputInventory, inputDevices, play_path)
                     elif inputUserType == "remove_user":
+                        play_path = scripts_path + 'users.yaml'
                         inputUser = request.form['inputUser']
-                        ansible_cmd = "ansible-playbook -i {0} users.yaml --tags \"remove_user\" --extra-vars \"variable_host={1} to_remove_user=\'{2}\'\"".format(
-                            inputInventory, inputDevices, inputUser)
+                        ansible_cmd = "ansible-playbook -i {0} {3} --tags \"remove_user\" --extra-vars \"variable_host={1} to_remove_user=\'{2}\'\"".format(
+                            inputInventory, inputDevices, inputUser, play_path)
                     elif inputUserType == "set_user_privilege":
+                        play_path = scripts_path + 'users.yaml'
                         inputUser = request.form['inputUser']
                         inputPrivilege = request.form['inputPrivilege']
-                        ansible_cmd = "ansible-playbook -i {0} users.yaml --tags \"set_user_privilege\" --extra-vars \"variable_host={1} user=\'{2}\' privilege=\'{3}\'\"".format(
-                            inputInventory, inputDevices, inputUser, inputPrivilege)
+                        ansible_cmd = "ansible-playbook -i {0} {4} --tags \"set_user_privilege\" --extra-vars \"variable_host={1} user=\'{2}\' privilege=\'{3}\'\"".format(
+                            inputInventory, inputDevices, inputUser, inputPrivilege, play_path)
                     elif inputUserType == "set_new_password":
                         inputUser = request.form['inputUser']
                         inputPasswordType = request.form['inputPasswordType']
@@ -1876,8 +1894,9 @@ def find_template(template_type):
                             os.remove(inputInventory)
                             flash("The passwords to be set do not match!")
                         else:
-                            ansible_cmd = "ansible-playbook -i {0} users.yaml --tags \"set_new_password\" --extra-vars \"variable_host={1} user=\'{2}\' password_type=\'{3}\' new_password=\'{4}\'\"".format(
-                                inputInventory, inputDevices, inputUser, inputPasswordType, inputPassword)
+                            play_path = scripts_path + 'users.yaml'
+                            ansible_cmd = "ansible-playbook -i {0} {5} --tags \"set_new_password\" --extra-vars \"variable_host={1} user=\'{2}\' password_type=\'{3}\' new_password=\'{4}\'\"".format(
+                                inputInventory, inputDevices, inputUser, inputPasswordType, inputPassword, play_path)
 
                     # to run this cmd
                     output = os.popen(ansible_cmd).read()
@@ -2290,11 +2309,13 @@ def find_template(template_type):
                                 flash("Rewrite the permit list of IPs!")
                                 return redirect(request.url)
                         if inputType == "vty":
-                            ansible_cmd = "ansible-playbook -i {0} vty_config.yaml --tags \"{2}\" --extra-vars \"variable_host={1} access-list-number=\'{3}\' source_permit=\'{4}\'\"".format(
-                                inputInventory, inputDevices, inputFeature, inputACLNumber, permit_list)
+                            play_path = scripts_path + 'vty_config.yaml'
+                            ansible_cmd = "ansible-playbook -i {0} {5} --tags \"{2}\" --extra-vars \"variable_host={1} access-list-number=\'{3}\' source_permit=\'{4}\'\"".format(
+                                inputInventory, inputDevices, inputFeature, inputACLNumber, permit_list, play_path)
                         else:
-                            ansible_cmd = "ansible-playbook -i {0} console.yaml --tags \"{2}\" --extra-vars \"variable_host={1} access-list-number=\'{3}\' source_permit=\'{4}\'\"".format(
-                                inputInventory, inputDevices, inputFeature, inputACLNumber, permit_list)
+                            play_path = scripts_path + 'console.yaml'
+                            ansible_cmd = "ansible-playbook -i {0} {5} --tags \"{2}\" --extra-vars \"variable_host={1} access-list-number=\'{3}\' source_permit=\'{4}\'\"".format(
+                                inputInventory, inputDevices, inputFeature, inputACLNumber, permit_list, play_path)
 
                     elif inputFeature == "access_list_deny":
                         inputDeny = request.form['inputDeny']
@@ -2306,11 +2327,13 @@ def find_template(template_type):
                                 flash("Rewrite the deny list of IPs!")
                                 return redirect(request.url)
                         if inputType == "vty":
-                            ansible_cmd = "ansible-playbook -i {0} vty_config.yaml --tags \"{2}\" --extra-vars \"variable_host={1} access_list_number=\'{3}\' source_permit=\'{4}\'\"".format(
-                                inputInventory, inputDevices, inputFeature, inputACLNumber, deny_list)
+                            play_path = scripts_path + 'vty_config.yaml'
+                            ansible_cmd = "ansible-playbook -i {0} {5} --tags \"{2}\" --extra-vars \"variable_host={1} access_list_number=\'{3}\' source_permit=\'{4}\'\"".format(
+                                inputInventory, inputDevices, inputFeature, inputACLNumber, deny_list, play_path)
                         else:
-                            ansible_cmd = "ansible-playbook -i {0} console.yaml --tags \"{2}\" --extra-vars \"variable_host={1} aaccess_list_number=\'{3}\' source_deny=\'{4}\'\"".format(
-                                inputInventory, inputDevices, inputFeature, inputACLNumber, deny_list)
+                            play_path = scripts_path + 'console.yaml'
+                            ansible_cmd = "ansible-playbook -i {0} {5} --tags \"{2}\" --extra-vars \"variable_host={1} aaccess_list_number=\'{3}\' source_deny=\'{4}\'\"".format(
+                                inputInventory, inputDevices, inputFeature, inputACLNumber, deny_list, play_path)
 
                     elif inputFeature == "inbound_vty_access_vrf_also" or inputFeature == "outbound_vty_access_vrf_also":
                         inputVTYfirstline = request.form['inputVTYfirstline']
@@ -2320,12 +2343,14 @@ def find_template(template_type):
                             os.remove(inputInventory)
                         else:
                             vty_line = 'line vty ' + inputVTYfirstline + ' ' + inputVTYlastline
-                            ansible_cmd = "ansible-playbook -i {0} vty_config.yaml --tags \"{2}\" --extra-vars \"variable_host={1} access_list_number=\'{3}\' vty_lines=\'{4}\'\"".format(
-                                inputInventory, inputDevices, inputFeature, inputACLNumber, vty_line)
+                            play_path = scripts_path + 'vty_config.yaml'
+                            ansible_cmd = "ansible-playbook -i {0} {5} --tags \"{2}\" --extra-vars \"variable_host={1} access_list_number=\'{3}\' vty_lines=\'{4}\'\"".format(
+                                inputInventory, inputDevices, inputFeature, inputACLNumber, vty_line, play_path)
 
                     elif inputFeature == "inbound_console_access_vrf_also" or inputFeature == "outbound_console_access_vrf_also":
-                        ansible_cmd = "ansible-playbook -i {0} console.yaml --tags \"{2}\" --extra-vars \"variable_host={1} access_list_number=\'{3}\'\"".format(
-                            inputInventory, inputDevices, inputFeature, inputACLNumber)
+                        play_path = scripts_path + 'console.yaml'
+                        ansible_cmd = "ansible-playbook -i {0} {4} --tags \"{2}\" --extra-vars \"variable_host={1} access_list_number=\'{3}\'\"".format(
+                            inputInventory, inputDevices, inputFeature, inputACLNumber, play_path)
 
                     # run ansible cmd here
                     if ansible_cmd != "":
@@ -2372,11 +2397,13 @@ def find_template(template_type):
                 else:
                     if inputType == "sw_mode_access":
                         inputVLANid = request.form['inputVLANid']
-                        ansible_cmd = "ansible-playbook -i {0} dtp.yaml --tags \"{2}\" --extra-vars \"variable_host={1} interface_number=\'{3}\' vlan_id=\'{4}\'\"".format(
-                            inputInventory, inputDevices, inputType, inputInterface, inputVLANid)
+                        play_path = scripts_path + 'dtp.yaml'
+                        ansible_cmd = "ansible-playbook -i {0} {5} --tags \"{2}\" --extra-vars \"variable_host={1} interface_number=\'{3}\' vlan_id=\'{4}\'\"".format(
+                            inputInventory, inputDevices, inputType, inputInterface, inputVLANid, play_path)
                     else:
-                        ansible_cmd = "ansible-playbook -i {0} dtp.yaml --tags \"{2}\" --extra-vars \"variable_host={1} interface_number=\'{3}\'\"".format(
-                            inputInventory, inputDevices, inputType, inputInterface)
+                        play_path = scripts_path + 'dtp.yaml'
+                        ansible_cmd = "ansible-playbook -i {0} {4} --tags \"{2}\" --extra-vars \"variable_host={1} interface_number=\'{3}\'\"".format(
+                            inputInventory, inputDevices, inputType, inputInterface, play_path)
 
                     output = os.popen(ansible_cmd).read()
                     flash(output)
@@ -2678,6 +2705,7 @@ app_dir = os.path.realpath(os.path.dirname(__file__))
 database_path = os.path.join(app_dir, app.config['DATABASE_FILE'])
 if not os.path.exists(database_path):
     build_sample_db()
+app.run(host='0.0.0.0')
 
 if __name__ == '__main__':
 
@@ -2688,4 +2716,4 @@ if __name__ == '__main__':
         build_sample_db()
 
     # Start app
-    app.run(debug=True)
+    app.run(host='0.0.0.0')
