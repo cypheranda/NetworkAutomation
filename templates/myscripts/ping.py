@@ -4,7 +4,7 @@ import signal
 import os
 
 def do_ping(device_ip):
-    response = os.system("ping -c 1 " + device_ip)
+    response = os.system("ping -w 1 " + device_ip)
     ping_code = ""
     #and then check the response...
     if response == 0:

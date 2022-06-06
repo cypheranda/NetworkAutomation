@@ -1554,10 +1554,10 @@ def find_template(template_type):
                         ansible_cmd = "ansible-playbook -i {0} {3} --extra-vars \"variable_host={1} afi_type=\"{2}\"\"".format(
                             inputInventory, inputDevices, inputAFI, play_path)
                     # to run this cmd
-                    output = os.popen(ansible_cmd).read()
-                    os.remove(inputInventory)
-                    flash(output)
-                    # flash(ansible_cmd)
+                    # output = os.popen(ansible_cmd).read()
+                    # os.remove(inputInventory)
+                    # flash(output)
+                    flash(ansible_cmd)
                     return redirect(request.url)
 
         elif template_type == "STP":
