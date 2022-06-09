@@ -547,8 +547,8 @@ def adjust_file(inv_file, password_str, enable_str):
 def write_inventory_files(filenames):
     path = 'templates/myscripts/inventories/'
     dir = os.path.join(ROOT_DIR, path)  # requires `import os`
-    for f in os.listdir(dir):
-        os.remove(os.path.join(dir, f))
+    shutil.rmtree(dir)
+    os.mkdir(dir)
     for filename in filenames:
         path = 'templates/myscripts/inventories/' + filename.name
         file_path = os.path.join(ROOT_DIR, path)  # requires `import os`
@@ -1554,10 +1554,10 @@ def find_template(template_type):
                         ansible_cmd = "ansible-playbook -i {0} {3} --extra-vars \"variable_host={1} afi_type=\"{2}\"\"".format(
                             inputInventory, inputDevices, inputAFI, play_path)
                     # to run this cmd
-                    # output = os.popen(ansible_cmd).read()
-                    # os.remove(inputInventory)
-                    # flash(output)
-                    flash(ansible_cmd)
+                    output = os.popen(ansible_cmd).read()
+                    os.remove(inputInventory)
+                    flash(output)
+                    # flash(ansible_cmd)
                     return redirect(request.url)
 
         elif template_type == "STP":
@@ -2676,11 +2676,6 @@ def build_sample_db():
     return
 
 
-app_dir = os.path.realpath(os.path.dirname(__file__))
-database_path = os.path.join(app_dir, app.config['DATABASE_FILE'])
-if not os.path.exists(database_path):
-    build_sample_db()
-app.run(host='0.0.0.0')
 
 if __name__ == '__main__':
 
@@ -2691,4 +2686,4 @@ if __name__ == '__main__':
         build_sample_db()
 
     # Start app
-    app.run(host='0.0.0.0')
+    app.run(host='0.0.0.0', port='5005')
