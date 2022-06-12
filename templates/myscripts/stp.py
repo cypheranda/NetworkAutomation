@@ -57,7 +57,7 @@ def start_stp(device, configuration, vars_array, tmp_file):
 
 
 def do_stp(devices, os_type, username, password, enable, configuration, vars_array):
-
+    return_statement = ""
     for ip in devices:
         if os_type == 'ios':
             os_type = 'cisco_ios'
@@ -77,17 +77,21 @@ def do_stp(devices, os_type, username, password, enable, configuration, vars_arr
         tmp_file = str(uuid.uuid4())
         try:
             start_stp(cisco_device, configuration, vars_array, tmp_file)
+            return_statement += "Succes for " + ip + ".\n"
         except ConnectionRefusedError as err:
-            return f"Connection Refused: {err}"
+            this_error = f"Connection Refused: {err}\n"
+            return_statement += this_error
         except TimeoutError as err:
-            return f"Connection Refused: {err}"
+            this_error = f"Connection Refused: {err}\n"
+            return_statement += this_error
         except Exception as err:
-            return f"Oops! {err}"
+            this_error = f"Oops: {err}\n"
+            return_statement += this_error
 
         path = tmp_file
         CONFIG_PATH = os.path.join(ROOT_DIR, path)
         os.remove(path)
 
-    return "Successful config!"
+    return return_statement
 
 

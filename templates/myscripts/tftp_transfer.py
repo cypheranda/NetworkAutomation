@@ -59,8 +59,9 @@ def tftp_get_file_from_server(tftp_server, host_ip, os_type, username, password,
 
 
 def do_tftp(devices, os_type, username, password, enable, config_type, tftp_server, filenames, newnames):
-    try:
-        for ip in devices:
+    return_statement = ""
+    for ip in devices:
+        try:
             pos = devices.index(ip)
 
             if config_type == 'To':
@@ -69,12 +70,15 @@ def do_tftp(devices, os_type, username, password, enable, config_type, tftp_serv
                 tftp_get_file_from_server(tftp_server, ip, os_type, username, password, enable, filenames[pos], newnames[pos])
             print('Sending commands from file...')
 
-    except ConnectionRefusedError as err:
-        return f"Connection Refused: {err}"
-    except TimeoutError as err:
-        return f"Connection Refused: {err}"
-    except Exception as err:
-        return f"Oops! {err}"
+            return_statement += "Succes for " + ip + ".\n"
+        except ConnectionRefusedError as err:
+            this_error = f"Connection Refused: {err}\n"
+            return_statement += this_error
+        except TimeoutError as err:
+            this_error = f"Connection Refused: {err}\n"
+            return_statement += this_error
+        except Exception as err:
+            this_error = f"Oops: {err}\n"
+            return_statement += this_error
 
-
-    return "Successful transfer!"
+    return return_statement

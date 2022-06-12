@@ -95,6 +95,7 @@ def ftp_send_file_from_server(ftp_server, host_ip, os_type, username, password, 
 
 def do_ftp(devices, os_type, username, password, enable, config_type, ftp_server, arg1, arg2):
     output = ""
+    return_statement = ""
     for ip in devices:
         pos = devices.index(ip)
         try:
@@ -106,17 +107,22 @@ def do_ftp(devices, os_type, username, password, enable, config_type, ftp_server
                 output = setup_ftp_credentials(ftp_server, ip, os_type, username, password, enable, arg1, arg2) # root, gns3
             # print('Sending commands from file...')
 
-        except ConnectionRefusedError as err:
-            return f"Connection Refused: {err}"
-        except TimeoutError as err:
-            return f"Connection Refused: {err}"
-        except Exception as err:
-            return f"Oops! {err}"
+            if not output:
+                return_statement += output
+            else:
+                return_statement += "Succes for " + ip + ".\n"
 
-    if not output:
-        return output
-    else:
-        return "Successful transfer!"
+        except ConnectionRefusedError as err:
+            this_error = f"Connection Refused: {err}\n"
+            return_statement += this_error
+        except TimeoutError as err:
+            this_error = f"Connection Refused: {err}\n"
+            return_statement += this_error
+        except Exception as err:
+            this_error = f"Oops: {err}\n"
+            return_statement += this_error
+
+    return return_statement
 
 #
 # setup_ftp_credentials("192.168.122.150", "192.168.122.17", "root", "gns3")

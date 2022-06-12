@@ -102,49 +102,6 @@ class Device(db.Model, RoleMixin):
     dest_file = db.Column(db.String(80), nullable=True)
     ping_now = db.Column(db.String(80), nullable=True)
 
-    # network_id = db.Column(db.Integer(), db.ForeignKey('network.id'), nullable=False)
-    # network = db.relationship("Network")
-
-    # @hybrid_property
-    # def ping(self):
-    #
-    # ip_address = self.ip_address
-    # return ip_address
-    # return ping.do_ping(ip_address)
-
-    # @hybrid_property
-    # def details(self):
-    #     # details
-    #     hostname, uptime, version, serial, ios = netmiko_show_version.show_version(self.ip_address, self.os_type,
-    #                                                                                admin_username, admin_password)
-    #     print(hostname)
-    #     print(uptime)
-    #     if hostname == "error":
-    #         return "Could not connect to device!"
-    #     data_array = []
-    #     x = {
-    #         "hostname": hostname,
-    #         "uptime": uptime,
-    #         "version": version,
-    #         "serial": serial,
-    #     }
-    #     data_array.append(x)
-    #     return json.dumps(data_array)
-    #
-    # @hybrid_property
-    # def up_interfaces(self):
-    #     # up_interfaces
-    #     if self.ping != "Successful ping to host!" or self.details == "Could not connect to device!":
-    #         return "Could not connect to device!"
-    #     interfaces, int_ipaddresses = paramiko_sh_ip_int_brief.show_ipintbrief(self.ip_address, admin_username,
-    #                                                                            admin_password, admin_enablepass)
-    #     data_array = []
-    #     x = {
-    #         "interface": interfaces,
-    #         "ip_address": int_ipaddresses,
-    #         }
-    #     return data_array.append(x)
-
     def __str__(self):
         return self.name
 
@@ -181,7 +138,7 @@ class Inventory(db.Model, UserMixin):
     name = db.Column(db.String(80), unique=True, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     user = db.relationship("User")
-    categories = db.relationship("Category", backref=backref("inventory", cascade="all,delete"))
+    # categories = db.relationship("Category", backref=backref("inventory", cascade="all,delete"))
 
     # devices = db.relationship("Device", backref="inventory")
 
@@ -198,7 +155,7 @@ class Category(db.Model, UserMixin):
     _enable_password = db.Column(db.String(255), nullable=False)
     inventory_id = db.Column(db.Integer, db.ForeignKey('inventory.id'), nullable=True)
 
-    # inventory = db.relationship("Inventory", backref=backref('allcategories', cascade="all,delete"))
+    inventory = db.relationship("Inventory", backref=backref('categories', lazy=True, cascade="all,delete"))
 
     def __str__(self):
         return self.name
@@ -366,6 +323,13 @@ class DeviceView(sqla.ModelView):
         'ping_now': _format_ping_now
     }
 
+    def get_query(self):
+        return self.session.query(self.model).filter(self.model.category_rel.comparator.entity.all_orm_descriptors.category.comparator.entity.all_orm_descriptors.inventory.comparator.entity.all_orm_descriptors.user_id == flask_login.current_user.id)
+
+    def get_count_query(self):
+        return self.session.query(func.count('*')).filter(self.model.category_rel.comparator.entity.all_orm_descriptors.category.comparator.entity.all_orm_descriptors.inventory.comparator.entity.all_orm_descriptors.user_id == flask_login.current_user.id)
+
+
 
 class FullView(sqla.ModelView):
     column_list = ['category.inventory.name', 'category.name', 'device.name']
@@ -381,6 +345,13 @@ class FullView(sqla.ModelView):
         'device.name': 'Device',
     }
 
+    def get_query(self):
+        return self.session.query(self.model).filter(self.model.category.comparator.entity.all_orm_descriptors.inventory.comparator.entity.all_orm_descriptors.user_id == flask_login.current_user.id)
+
+    def get_count_query(self):
+        return self.session.query(func.count('*')).filter(self.model.category.comparator.entity.all_orm_descriptors.inventory.comparator.entity.all_orm_descriptors.user_id == flask_login.current_user.id)
+
+
 
 def filter_inventories():
     return db.session.query(Inventory).filter_by(user_id=flask_login.current_user.id)
@@ -392,7 +363,7 @@ def filter_ostypes():
 
 class CategoryView(sqla.ModelView):
     column_list = ['name', 'inventory', 'os_type', 'username']
-    column_exclude_list = ['_password', '_enable_password']
+    column_exclude_list = ['id', '_password', '_enable_password']
     column_editable_list = column_list
     column_searchable_list = ['name']
     column_filters = ['name', 'inventory.name']
@@ -431,8 +402,14 @@ class CategoryView(sqla.ModelView):
         'inventory.name': 'Inventory',
     }
 
+    def get_query(self):
+        return self.session.query(self.model).filter(self.model.inventory.comparator.entity.all_orm_descriptors.user_id == flask_login.current_user.id)
 
-def filter_func():
+    def get_count_query(self):
+        return self.session.query(func.count('*')).filter(self.model.inventory.comparator.entity.all_orm_descriptors.user_id == flask_login.current_user.id)
+
+
+def filter_func_inventory():
     curr_usr = User.query.filter_by(id=flask_login.current_user.id).first()
     return db.session.query(User).filter_by(email=curr_usr.email)
 
@@ -447,11 +424,12 @@ class InventoryView(sqla.ModelView):
 
     form_args = {
         "user": {
-            "query_factory": filter_func
+            "query_factory": filter_func_inventory
         }
     }
 
     form_excluded_columns = ('categories')
+
 
     def get_query(self):
         return self.session.query(self.model).filter(self.model.user_id == flask_login.current_user.id)
@@ -653,6 +631,11 @@ def get_backups():
     return_json = json.dumps(obj_list)
     return return_json
 
+def parse_ansible_output(output):
+    index = output.split("PLAY RECAP ***********************", 1)[1]
+    return index
+
+
 
 @app.route('/admin/<template_type>', methods=['POST', 'GET'])
 def find_template(template_type):
@@ -663,6 +646,7 @@ def find_template(template_type):
     write_inventory_files(inventories)
 
     myDict = {}
+    devicesDict = {}
     for inventory in inventories:
         key = inventory.name
 
@@ -820,8 +804,6 @@ def find_template(template_type):
                 flash('Ip address is required!')
             elif not inputMacAddress:
                 flash('MAC address is required!')
-            elif not inputVlan:
-                flash('VLAN is required!')
             elif validate_ip_address(inputIpAddress) == False:
                 flash('That is not a valid IP address!')
             elif validate_mac_address(inputMacAddress) == False:
@@ -931,7 +913,7 @@ def find_template(template_type):
                                                                 devices_username,
                                                                 inputPassword, inputEnablePassword) == 0:
                             os.remove(inputInventory)
-                            os.remove(inputInventory)
+
                             ok_interfaces = 0
                             flash(
                                 "The interface you entered is not present in all of the devices you selected or you didn't write the interfaces string right!")
@@ -1078,7 +1060,7 @@ def find_template(template_type):
 
                     output = os.popen(ansible_cmd).read()
                     os.remove(inputInventory)
-                    flash(output)
+                    flash(parse_ansible_output(output))
                     return redirect(request.url)
 
         elif template_type == "DomainName":
@@ -1118,7 +1100,7 @@ def find_template(template_type):
                     # to run this cmd
 
                     output = os.popen(ansible_cmd).read()
-                    flash(output)
+                    flash(parse_ansible_output(output))
                     os.remove(inputInventory)
                     # flash(ansible_cmd)
                     return redirect(request.url)
@@ -1259,7 +1241,7 @@ def find_template(template_type):
                     # to run this cmd
                     output = os.popen(ansible_cmd).read()
                     os.remove(inputInventory)
-                    flash(output)
+                    flash(parse_ansible_output(output))
                     # flash(ansible_cmd)
                     return redirect(request.url)
 
@@ -1315,7 +1297,7 @@ def find_template(template_type):
                     # to run this cmd
                     output = os.popen(ansible_cmd).read()
                     os.remove(inputInventory)
-                    flash(output)
+                    flash(parse_ansible_output(output))
                     # flash(ansible_cmd)
                     return redirect(request.url)
 
@@ -1353,7 +1335,7 @@ def find_template(template_type):
                     # to run this cmd
                     output = os.popen(ansible_cmd).read()
                     os.remove(inputInventory)
-                    flash(output)
+                    flash(parse_ansible_output(output))
                     # flash(ansible_cmd)
                     return redirect(request.url)
 
@@ -1406,7 +1388,7 @@ def find_template(template_type):
                             # to run this cmd
 
                             output = os.popen(ansible_cmd).read()
-                            flash(output)
+                            flash(parse_ansible_output(output))
                             os.remove(inputInventory)
                             # flash(ansible_cmd)
                             return redirect(request.url)
@@ -1449,7 +1431,7 @@ def find_template(template_type):
                     # to run this cmd
                     output = os.popen(ansible_cmd).read()
                     os.remove(inputInventory)
-                    flash(output)
+                    flash(parse_ansible_output(output))
                     # flash(ansible_cmd)
                     return redirect(request.url)
 
@@ -1501,7 +1483,7 @@ def find_template(template_type):
                     # to run this cmd
                     output = os.popen(ansible_cmd).read()
                     os.remove(inputInventory)
-                    flash(output)
+                    flash(parse_ansible_output(output))
                     # flash(ansible_cmd)
                     return redirect(request.url)
 
@@ -1556,7 +1538,7 @@ def find_template(template_type):
                     # to run this cmd
                     output = os.popen(ansible_cmd).read()
                     os.remove(inputInventory)
-                    flash(output)
+                    flash(parse_ansible_output(output))
                     # flash(ansible_cmd)
                     return redirect(request.url)
 
@@ -1799,7 +1781,8 @@ def find_template(template_type):
                                 play_path = scripts_path + 'ntp_config.yaml'
                                 ansible_cmd = "ansible-playbook -i {0} {4} -t \"{3}\" --extra-vars \"variable_host={1} server_ip=\"{2}\"\"".format(
                                     inputInventory, inputDevices, inputClientServer, tag, play_path)
-                                flash(ansible_cmd)
+
+                                # flash(ansible_cmd)
                             else:
                                 os.remove(inputInventory)
                                 flash("This is not a valid IP address!")
@@ -1809,7 +1792,7 @@ def find_template(template_type):
                     # to run this cmd
                     output = os.popen(ansible_cmd).read()
                     os.remove(inputInventory)
-                    flash(output)
+                    flash(parse_ansible_output(output))
                     # flash(ansible_cmd)
                     return redirect(request.url)
 
@@ -1887,7 +1870,7 @@ def find_template(template_type):
                     # to run this cmd
                     output = os.popen(ansible_cmd).read()
                     os.remove(inputInventory)
-                    flash(output)
+                    flash(parse_ansible_output(output))
                     # flash(ansible_cmd)
                     return redirect(request.url)
 
@@ -2333,7 +2316,7 @@ def find_template(template_type):
                     # run ansible cmd here
                     if ansible_cmd != "":
                         output = os.popen(ansible_cmd).read()
-                        flash(output)
+                        flash(parse_ansible_output(output))
                         # flash(ansible_cmd)
                         os.remove(inputInventory)
                         return redirect(request.url)
@@ -2382,7 +2365,7 @@ def find_template(template_type):
                             inputInventory, inputDevices, inputType, inputInterface, play_path)
 
                     output = os.popen(ansible_cmd).read()
-                    flash(output)
+                    flash(parse_ansible_output(output))
                     # flash(ansible_cmd)
                     os.remove(inputInventory)
                     return redirect(request.url)
@@ -2499,17 +2482,15 @@ admin = flask_admin.Admin(
 
 
 # Add model views
-# admin.add_view(MyModelView(Role, db.session, menu_icon_type='fa', menu_icon_value='fa-server', name="Roles"))
-# user.add_view(UserView(User, db.session, menu_icon_type='fa', menu_icon_value='fa-users', name="Users"))
+
 admin.add_view(UserView(User, db.session, menu_icon_type='fa', menu_icon_value='fa-users', name="Users"))
 admin.add_view(
     TemplateView(name="Templates", endpoint='templates', menu_icon_type='fa', menu_icon_value='fa-connectdevelop'))
-# admin.add_view(NetworkView(Network, db.session, menu_icon_type='fa', menu_icon_value='fa-desktop', name="Networks"))
 admin.add_view(
     FullView(DeviceCategoryRelation, db.session, menu_icon_type='fa', menu_icon_value='fa-book', name="Full view"))
 admin.add_view(DeviceView(Device, db.session, menu_icon_type='fa', menu_icon_value='fa-cube', name="Devices"))
-admin.add_view(CategoryView(Category, db.session, menu_icon_type='fa', menu_icon_value='fa-cubes', name="Category"))
-admin.add_view(InventoryView(Inventory, db.session, menu_icon_type='fa', menu_icon_value='fa-server', name="Inventory"))
+admin.add_view(CategoryView(Category, db.session, menu_icon_type='fa', menu_icon_value='fa-cubes', name="Categories"))
+admin.add_view(InventoryView(Inventory, db.session, menu_icon_type='fa', menu_icon_value='fa-server', name="Inventories"))
 
 
 # define a context processor for merging flask-admin's template context into the
@@ -2675,7 +2656,13 @@ def build_sample_db():
 
     return
 
+app_dir = os.path.realpath(os.path.dirname(__file__))
+database_path = os.path.join(app_dir, app.config['DATABASE_FILE'])
+if not os.path.exists(database_path):
+    build_sample_db()
 
+    # Start app
+app.run(host='0.0.0.0', port='5005')
 
 if __name__ == '__main__':
 

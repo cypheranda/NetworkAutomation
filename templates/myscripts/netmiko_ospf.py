@@ -331,6 +331,7 @@ def ospf(device, ospf_file, vars_array, tmp_file):
 
 
 def do_ospf(devices, os_type, username, password, enable, config_type, vars_array):
+    return_statement = ""
     if os_type == 'ios':
         os_type = 'cisco_ios'
 
@@ -351,18 +352,22 @@ def do_ospf(devices, os_type, username, password, enable, config_type, vars_arra
         tmp_file = str(uuid.uuid4())
         try:
             ospf(cisco_device, configuration, vars_array, tmp_file)
+            return_statement += "Succes for " + ip + ".\n"
         except ConnectionRefusedError as err:
-            return f"Connection Refused: {err}"
+            this_error = f"Connection Refused: {err}\n"
+            return_statement += this_error
         except TimeoutError as err:
-            return f"Connection Refused: {err}"
+            this_error = f"Connection Refused: {err}\n"
+            return_statement += this_error
         except Exception as err:
-            return f"Oops! {err}"
+            this_error = f"Oops: {err}\n"
+            return_statement += this_error
 
         path = tmp_file
         CONFIG_PATH = os.path.join(ROOT_DIR, path)
         os.remove(path)
 
-    return "Successful config!"
+    return return_statement
 
 
 

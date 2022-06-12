@@ -43,6 +43,7 @@ def do_dhcp_snooping(devices, os_type, username, password, enable, VLANS_RANGE, 
     # DHCP_TRUSTED_INTERFACES = 'GigabitEthernet0/0, ...'
     # VLANS_RANGE = '1,4,5'
     # UNTRUSTED_LIMITS = 2 # pt fiecare interfata
+    return_statement = ""
 
     if os_type == 'cisco_ios':
         os_type = 'ios'
@@ -61,17 +62,21 @@ def do_dhcp_snooping(devices, os_type, username, password, enable, VLANS_RANGE, 
             dhcp_snooping(tmp_file, ios.get_interfaces(), devices, os_type, username, password, enable, VLANS_RANGE, DHCP_TRUSTED_INTERFACES, UNTRUSTED_LIMIT)
             ios.load_merge_candidate(tmp_file)
             ios.commit_config()
+            return_statement += "Succes for " + ip + ".\n"
         except ConnectionRefusedError as err:
-            return f"Connection Refused: {err}"
+            this_error = f"Connection Refused: {err}\n"
+            return_statement += this_error
         except TimeoutError as err:
-            return f"Connection Refused: {err}"
+            this_error = f"Connection Refused: {err}\n"
+            return_statement += this_error
         except Exception as err:
-            return f"Oops! {err}"
+            this_error = f"Oops: {err}\n"
+            return_statement += this_error
 
         os.remove(tmp_file)
 
         print('Closing connection...')
         ios.close()
 
-    return "Successful config!"
+    return return_statement
 

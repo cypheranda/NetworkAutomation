@@ -88,6 +88,7 @@ def restore_archived_router_config(tmp_file,  host_ip, username, password, secre
 
 
 def do_secureboot(devices, os_type, username, password, enable, config_type):
+    return_statement = ""
     for ip in devices:
 
         # Archiving a Router Configuration
@@ -108,15 +109,19 @@ def do_secureboot(devices, os_type, username, password, enable, config_type):
             # connect to device and run commands from file
 
             netmiko_run_commands_from_file.run_commands_from_file(tmp_file, ip, username, password, enable)
+            return_statement += "Succes for " + ip + ".\n"
         except ConnectionRefusedError as err:
-            return f"Connection Refused: {err}"
+            this_error = f"Connection Refused: {err}\n"
+            return_statement += this_error
         except TimeoutError as err:
-            return f"Connection Refused: {err}"
+            this_error = f"Connection Refused: {err}\n"
+            return_statement += this_error
         except Exception as err:
-            return f"Oops! {err}"
+            this_error = f"Oops: {err}\n"
+            return_statement += this_error
 
         path = tmp_file
         CONFIG_PATH = os.path.join(ROOT_DIR, path)
         os.remove(path)
 
-    return "Successful configuration!"
+    return return_statement

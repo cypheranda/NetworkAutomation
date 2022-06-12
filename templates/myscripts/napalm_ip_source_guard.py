@@ -44,7 +44,7 @@ def static_binding(tmp_file, do_enable, IP_ADDRESS, MAC_ADDRESS, VLAN, INTERFACE
 
 def do_ipsg(devices, os_type, username, password, enable, config_type, IP_ADDRESS, MAC_ADDRESS, VLAN, INTERFACE):
 
-    # ssh params
+    return_statement = ""
 
     for ip in devices:
         # enable or disable IP source guard on interface
@@ -54,17 +54,20 @@ def do_ipsg(devices, os_type, username, password, enable, config_type, IP_ADDRES
         # example: Switch(config)# ip source binding 0011.0011.0011 vlan 5 10.1.1.11 interface GigabitEthernet1/0/2
         # configuration parameters
 
-        if os_type == 'cisco_ios':
-            driver = get_network_driver('ios')
-
-        optional_args = {'secret': enable, 'global_delay_factor': 2}
-        ios = driver(ip, username, password, optional_args=optional_args)
-        ios.open()
-
-        # create a temporary file to create the config
-        tmp_file = str(uuid.uuid4())
-
         try:
+            if os_type == 'cisco_ios':
+                driver = get_network_driver('ios')
+            else:
+                driver = get_network_driver(os_type)
+
+            optional_args = {'secret': enable, 'global_delay_factor': 2}
+            ios = driver(ip, username, password, optional_args=optional_args)
+            ios.open()
+
+            # create a temporary file to create the config
+            tmp_file = str(uuid.uuid4())
+
+
             if config_type == 'ipsg_enable':
                 ipsg_enable(tmp_file, do_enable, INTERFACE)
             elif config_type == 'static_binding':
@@ -73,19 +76,24 @@ def do_ipsg(devices, os_type, username, password, enable, config_type, IP_ADDRES
 
             ios.load_merge_candidate(tmp_file)
             ios.commit_config()
+
+            return_statement += "Succes for " + ip + ".\n"
         except ConnectionRefusedError as err:
-            return f"Connection Refused: {err}"
+            this_error = f"Connection Refused: {err}\n"
+            return_statement += this_error
         except TimeoutError as err:
-            return f"Connection Refused: {err}"
+            this_error = f"Connection Refused: {err}\n"
+            return_statement += this_error
         except Exception as err:
-            return f"Oops! {err}"
+            this_error = f"Oops: {err}\n"
+            return_statement += this_error
 
         os.remove(tmp_file)
 
         print('Closing connection...')
         ios.close()
 
-    return "Successful interfaces!"
+    return return_statement
 
 
 # do_ipsg('192.168.204.16', 'cisco_ios', 'admin', 'cisco', 'parola', 'static_binding', '111.111.111.111', '00:29:15:80:4E:4A', '102', 'GigabitEthernet0/0')

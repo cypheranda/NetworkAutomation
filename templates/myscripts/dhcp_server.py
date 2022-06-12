@@ -42,12 +42,13 @@ def do_dhcp_server_config(devices, os_type, username, password, enable, exclude_
     # network_mask = '255.255.255.0'
     # default_router = '10.0.0.1'
     # dns_server = '10.0.0.80'
+    return_statement = ""
 
     if os_type == 'cisco_ios':
         os_type = 'ios'
 
-    try:
-        for ip in devices:
+    for ip in devices:
+        try:
             driver = get_network_driver(os_type)
 
             optional_args = {'secret': enable, 'global_delay_factor': 2}
@@ -65,15 +66,17 @@ def do_dhcp_server_config(devices, os_type, username, password, enable, exclude_
 
             print('Closing connection...')
             ios.close()
-    except ConnectionRefusedError as err:
-        return f"Connection Refused: {err}"
-    except TimeoutError as err:
-        return f"Connection Refused: {err}"
-    except Exception as err:
-        return f"Oops! {err}"
+            return_statement += "Succes for " + ip + ".\n"
+        except ConnectionRefusedError as err:
+            this_error = f"Connection Refused: {err}\n"
+            return_statement += this_error
+        except TimeoutError as err:
+            this_error = f"Connection Refused: {err}\n"
+            return_statement += this_error
+        except Exception as err:
+            this_error = f"Oops: {err}\n"
+            return_statement += this_error
 
-
-
-    return "Successful config!"
+    return return_statement
 
 

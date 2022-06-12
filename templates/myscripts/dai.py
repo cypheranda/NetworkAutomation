@@ -55,30 +55,32 @@ def dai_configuration(ip, os_type, username, password, enable, UNTRUSTED_VLANS, 
 
 
 def dai(devices, os_type, username, password, enable, UNTRUSTED_VLANS, TRUSTED_INTERFACES, UNTRUSTED_INTERFACES):
-
-    try:
-        for ip in devices:
+    return_statement = ""
+    for ip in devices:
             # a router in this case acts as the dhcp server
 
-            if os_type == 'cisco_ios':
-                os_type = 'ios'
+        if os_type == 'cisco_ios':
+            os_type = 'ios'
             # configuration parameters
             # UNTRUSTED_VLANS = ['104']
             # TRUSTED_INTERFACES = ['GigabitEthernet1/0', 'GigabitEthernet2/0']
             # UNTRUSTED_INTERFACES = ['GigabitEthernet0/1', 'GigabitEthernet0/2']
 
 
-
+        try:
             dai_configuration(ip, os_type, username, password, enable, UNTRUSTED_VLANS, TRUSTED_INTERFACES, UNTRUSTED_INTERFACES)
-    except ConnectionRefusedError as err:
-        return f"Connection Refused: {err}"
-    except TimeoutError as err:
-        return f"Connection Refused: {err}"
-    except Exception as err:
-        return f"Oops! {err}"
+            return_statement += "Succes for " + ip + ".\n"
+        except ConnectionRefusedError as err:
+            this_error = f"Connection Refused: {err}\n"
+            return_statement += this_error
+        except TimeoutError as err:
+            this_error = f"Connection Refused: {err}\n"
+            return_statement += this_error
+        except Exception as err:
+            this_error = f"Oops: {err}\n"
+            return_statement += this_error
 
-
-    return "Successful configuration!"
+    return return_statement
 
 # dai(['192.168.204.17'], 'cisco_ios', 'admin', 'cisco', 'parola', ['104'], ['GigabitEthernet1/0', 'GigabitEthernet2/0'], ['GigabitEthernet0/1', 'GigabitEthernet0/2'])
 

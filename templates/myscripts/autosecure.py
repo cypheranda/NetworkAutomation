@@ -336,12 +336,13 @@ def autosecure(device, vars_array):
 
 def do_autosecure(devices, os_type, username, password, enable, vars_array):
     # mylist = devices.split(', ')
-    try:
-        for ip in devices:
-            if os_type == 'ios':
-                os_type = 'cisco_ios'
+    return_statement = ""
 
-            cisco_device = {
+    for ip in devices:
+        if os_type == 'ios':
+            os_type = 'cisco_ios'
+
+        cisco_device = {
                 'device_type': os_type,
                 'host': ip,
                 'username': username,
@@ -349,19 +350,23 @@ def do_autosecure(devices, os_type, username, password, enable, vars_array):
                 'port': 22,  # optional, default 22
                 'secret': enable,  # this is the enable password
                 'verbose': True  # optional, default False
-            }
+        }
         # note that the enable secret and passwords are only sent once, the confirmation is interface-based
         # vars_array = ['1', 'knot setk', 'not set', 'not set 2', 'not set', 'not set 3', '30', '30', '30', 'No', 'not set', 'not set', 'No', 'No']
-
+        try:
             autosecure(cisco_device, vars_array)
-    except ConnectionRefusedError as err:
-        return f"Connection Refused: {err}"
-    except TimeoutError as err:
-        return f"Connection Refused: {err}"
-    except Exception as err:
-        return f"Oops! {err}"
+            return_statement += "Succes for " + ip + ".\n"
+        except ConnectionRefusedError as err:
+            this_error = f"Connection Refused: {err}\n"
+            return_statement += this_error
+        except TimeoutError as err:
+            this_error = f"Connection Refused: {err}\n"
+            return_statement += this_error
+        except Exception as err:
+            this_error = f"Oops: {err}\n"
+            return_statement += this_error
 
-    return "Successful config!"
+    return return_statement
 
 
 # vars_array = ['firewall', 'knot setk', 'not set', 'not set 2', 'not set', 'not set 3', '30', '30', '30', 'No', 'not set',
