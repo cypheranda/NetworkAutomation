@@ -1,0 +1,73 @@
+acls:
+- acls:
+  - aces:
+    - grant: permit
+      sequence: 10
+      source:
+        address: 40.40.40.0
+        wildcard_bits: 0.0.0.255
+    - grant: permit
+      sequence: 20
+      source:
+        address: 10.10.20.0
+        wildcard_bits: 0.0.0.255
+    - grant: permit
+      sequence: 30
+      source:
+        address: 10.10.10.0
+        wildcard_bits: 0.0.0.255
+    acl_type: standard
+    name: '1'
+  - aces:
+    - grant: permit
+      sequence: 10
+      source:
+        address: 10.10.20.0
+        wildcard_bits: 0.0.0.255
+    - grant: permit
+      sequence: 20
+      source:
+        address: 20.20.20.0
+        wildcard_bits: 0.0.0.255
+    acl_type: standard
+    name: '2'
+  - aces:
+    - grant: permit
+      sequence: 10
+      source:
+        address: 20.20.20.0
+        wildcard_bits: 0.0.0.255
+    - grant: permit
+      sequence: 20
+      source:
+        address: 30.30.30.0
+        wildcard_bits: 0.0.0.255
+    acl_type: standard
+    name: '3'
+  - aces:
+    - grant: permit
+      sequence: 10
+      source:
+        address: 30.30.30.0
+        wildcard_bits: 0.0.0.255
+    - grant: permit
+      sequence: 20
+      source:
+        address: 40.40.40.0
+        wildcard_bits: 0.0.0.255
+    acl_type: standard
+    name: '4'
+  - aces:
+    - grant: permit
+      sequence: 10
+      source:
+        address: 10.10.10.0
+        wildcard_bits: 0.0.0.255
+    - grant: permit
+      sequence: 20
+      source:
+        address: 10.10.20.0
+        wildcard_bits: 0.0.0.255
+    acl_type: standard
+    name: '5'
+  afi: ipv4

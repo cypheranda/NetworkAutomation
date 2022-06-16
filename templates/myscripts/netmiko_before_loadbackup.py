@@ -7,7 +7,7 @@ import os
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-def enable_scp(devices, os_type, username, password, enable):
+def check_archive_enable_scp(devices, os_type, username, password, enable):
     if os_type == 'ios':
         os_type = 'cisco_ios'
     for ip in devices:
@@ -29,6 +29,10 @@ def enable_scp(devices, os_type, username, password, enable):
         if not connection.check_config_mode():
             connection.config_mode()
 
+        archive_output = connection.send_command('show running-config\n')
+        if 'archive' not in archive_output:
+            connection.disconnect()
+            return "Archive is not configured for " + ip + "\n No backup was loaded!"
         connection.send_command('aaa new-model\n')
         connection.send_command('aaa authentication login default local\n')
         connection.send_command('aaa authorization exec default local none\n')
@@ -40,7 +44,7 @@ def enable_scp(devices, os_type, username, password, enable):
 
 def before_loading(devices, os_type, username, password, enable):
     try:
-        enable_scp(devices, os_type, username, password, enable)
+        check_archive_enable_scp(devices, os_type, username, password, enable)
     except ConnectionRefusedError as err:
         return f"Connection Refused: {err}"
     except TimeoutError as err:

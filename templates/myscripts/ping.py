@@ -1,10 +1,10 @@
 import os
 import signal
 
-import os
+import json
 
 def do_ping(device_ip):
-    response = os.system("ping -w 1 " + device_ip)
+    response = os.system("/bin/ping -w 1 " + device_ip)
     ping_code = ""
     #and then check the response...
     if response == 0:

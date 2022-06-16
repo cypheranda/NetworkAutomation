@@ -1,0 +1,19 @@
+acls:
+- acls:
+  - aces:
+    - grant: permit
+      sequence: 10
+      source:
+        address: 172.16.10.0
+        wildcard_bits: 0.0.0.255
+    acl_type: standard
+    name: '1'
+  - aces:
+    - grant: permit
+      sequence: 10
+      source:
+        address: 50.0.0.0
+        wildcard_bits: 0.0.0.255
+    acl_type: standard
+    name: '2'
+  afi: ipv4

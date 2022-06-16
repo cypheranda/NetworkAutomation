@@ -1,0 +1,464 @@
+    1  jourtnalctl -f | grep bash
+    2  journalctl -f | grep bash
+    3  sudo lsof -i -P -n
+    4  sudo lsof -i -P -n | grep LISTEN 
+    5  pkill -9 8942
+    6  sudo lsof -i -P -n | grep LISTEN 
+    7  pkill -9 8973
+    8  sudo lsof -i -P -n | grep LISTEN 
+    9  cd /var/www/html/
+   10  ls
+   11  cd licenta/
+   12  ls
+   13  sudo nano app.
+   14  sudo nano app.py 
+   15  python3 app.py 
+   16  sudo nano app.py 
+   17  python3 app.py 
+   18  sudo nano app.py 
+   19  python3 app.py 
+   20  sudo nano app.py 
+   21  python3 app.py 
+   22  sudo nano app.py 
+   23  python3 app.py 
+   24  gunicorn --bind 0.0.0.0:8888 wsgi:app
+   25  source venv/bin/activate
+   26  gunicorn --bind 0.0.0.0:8888 wsgi:app
+   27  deactivate 
+   28  sudo nano /etc/systemd/system/flask.service 
+   29  rm app.sock 
+   30  ls
+   31  sudo rm app.sock 
+   32  ls
+   33  sudo systemctl start flask
+   34  sudo systemctl daemon-reload
+   35  sudo systemctl start flask
+   36  sudo systemctl enable flask
+   37  sudo systemctl status flask
+   38  sudo nano /etc/systemd/system/flask.service 
+   39  sudo systemctl daemon-reload
+   40  sudo systemctl start flask
+   41  sudo systemctl enable flask
+   42  sudo systemctl status flask
+   43  sudo nano /etc/nginx/conf.d/flask.conf 
+   44  sudo systemctl restart nginx
+   45  sudo systemctl daemon-reload
+   46  sudo systemctl start flask
+   47  sudo systemctl status flask
+   48  cd /home
+   49  cd osboxes/
+   50  ls
+   51  cd licenta/
+   52  ls
+   53  source venv/bin/activate
+   54  pip install uwsgi
+   55  python3 app.py 
+   56  lsof -i 5000
+   57  lsof -i:5000
+   58  sudo nano app.py 
+   59  python3 app.py 
+   60  sudo nano app.py 
+   61  python3 app.py 
+   62  sudo nano wsgi.py 
+   63  sudo nano app.ini
+   64  ls
+   65  sudo nano app.ini
+   66  uwsgi --socket 0.0.0.0:5005 --protocol=http -w wsgi:app
+   67  deactivate
+   68  sudo nano app.ini
+   69  ls
+   70  sudo rm app.sock 
+   71  ls
+   72  sudo nano /etc/systemd/system/flask.service 
+   73  sudo systemctl start flask
+   74  sudo systemctl daemon-reload
+   75  sudo systemctl start flask
+   76  sudo systemctl enable flask
+   77  sudo systemctl status flask
+   78  sudo nano /etc/systemd/system/flask.service 
+   79  sudo nano app.ini
+   80  nano app.sock
+   81  ls
+   82  sudo nano app.ini
+   83  sudo systemctl restart nginx
+   84  sudo systemctl restart flask
+   85  sudo systemctl status flask
+   86  sudo rm -r /var/www/html/licenta/
+   87  unlink /etc/nginx/sites-available/flask 
+   88  sudo unlink /etc/nginx/sites-available/flask 
+   89  sudo unlink /etc/nginx/sites-enabled/flask 
+   90  ls /etc/nginx/sites-available/
+   91  ls /etc/nginx/sites-enabled/
+   92  sudo systemctl restart nginx
+   93  sudo systemctl restart flask
+   94  sudo systemctl status flask
+   95  sudo systemctl status nginx
+   96  sudo nano /etc/systemd/system/flask.service 
+   97  sudo systemctl status flask
+   98  sudo systemctl restart flask
+   99  sudo systemctl daemon-reload
+  100  sudo systemctl restart flask
+  101  sudo systemctl status flask
+  102  sudo nano /etc/nginx/sites-available/flask
+  103  sudo rm /etc/nginx/conf.d/flask.conf 
+  104  sudo nano /etc/nginx/sites-available/flask
+  105  sudo rm /etc/nginx/sites-available/flask
+  106  sudo nano /etc/nginx/sites-available/flask
+  107  ls
+  108  server {
+  109  sudo ln -s /etc/nginx/sites-available/flask /etc/nginx/sites-enabled
+  110  ln -s /etc/nginx/sites-available/flask /etc/nginx/sites-enabled
+  111  sudo nginx -t
+  112  sudo systemctl restart nginx
+  113  sudo ufw delete allow 5005
+  114  sudo ufw delete allow 5000
+  115  sudo ufw allow 'Nginx Full'
+  116  sudo nano /etc/nginx/sites-available/flask
+  117  ls
+  118  nano app.sock 
+  119  sudo nano /etc/host
+  120  sudo nano /etc/hosts
+  121  sudo systemctl restart nginx
+  122  sudo systemctl restart flask
+  123  sudo systemctl enable flask
+  124  sudo systemctl status flask
+  125  sudo less /var/log/nginx/error.log
+  126  sudo nano /etc/nginx/nginx.conf 
+  127  sudo systemctl restart nginx
+  128  sudo systemctl restart flask
+  129  sudo systemctl enable flask
+  130  sudo systemctl status flask
+  131  sudo less /var/log/nginx/error.log
+  132  sudo less /var/log/nginx/access.log
+  133  sudo journalctl -u nginx
+  134  sudo journalctl -u flask
+  135  sudo systemctl status flask
+  136  sudo nano /etc/nginx/sites-available/flask
+  137  sudo systemctl restart nginx
+  138  sudo systemctl restart flask
+  139  sudo systemctl daemon-reload
+  140  sudo systemctl restart flask
+  141  sudo systemctl enable flask
+  142  sudo systemctl status flask
+  143  sudo nano /etc/nginx/sites-available/flask
+  144  sudo unlink /etc/nginx/sites-enabled/flask 
+  145  sudo ln -s /etc/nginx/sites-available/flask /etc/nginx/sites-enabled 
+  146  sudo nginx -t
+  147  sudo systemctl restart nginx
+  148  sudo nano /etc/nginx/sites-available/flask
+  149  sudo nano /etc/nginx/sites-enabled/flask 
+  150  sudo nano /etc/nginx/sites-available/flask
+  151  sudo nano /etc/nginx/sites-enabled/flask 
+  152  y
+  153  sudo nano /etc/nginx/sites-enabled/flask 
+  154  sudo nano /etc/nginx/sites-available/flask
+  155  sudo systemctl restart nginx
+  156  sudo nano /etc/hosts
+  157  sudo systemctl restart nginx
+  158  ls
+  159  nano templates/myscripts/ping.py 
+  160  cd ..
+  161  ls
+  162  pin 192.168.122.77
+  163  ping 192.168.122.77
+  164  nano testping.py
+  165  python3 testping.py 
+  166  nano testping.py
+  167  cd licenta/
+  168  python3 app.py
+  169  uwsgi --socket 0.0.0.0:5005 --protocol=http -w wsgi:app
+  170  sudo nano app.ini 
+  171  sudo rm app.ini 
+  172  sudo nano flask.ini 
+  173  sudo nano /etc/systemd/system/flask.service 
+  174  sudo nano wsgi.py 
+  175  sudo nano /etc/systemd/system/flask.service 
+  176  sudo systemctl daemon-reload
+  177  sudo systemctl start flask
+  178  sudo systemctl enable flask
+  179  sudo systemctl status flask
+  180  sudo systemctl restart flask
+  181  sudo systemctl enable flask
+  182  sudo systemctl status flask
+  183  sudo nano /etc/systemd/system/flask.service 
+  184  sudo nano wsgi.py 
+  185  sudo nano /etc/systemd/system/flask.service 
+  186  sudo nano flask.ini 
+  187  ls
+  188  sudo systemctl status flask
+  189  sudo systemctl daemon-reload
+  190  sudo systemctl status flask
+  191  sudo nano /etc/nginx/sites-available/flask 
+  192  sudo nano /etc/nginx/sites-enabled/flask 
+  193  sudo systemctl restart nginx
+  194  sudo systemctl restart flask
+  195  sudo systemctl enable flask
+  196  sudo systemctl status flask
+  197  sudo journalctl -u flask
+  198  sudo less /var/log/nginx/access.log 
+  199  sudo nano templates/myscripts/ping.py 
+  200  sudo systemctl restart flask
+  201  sudo systemctl enable flask
+  202  sudo systemctl status flask
+  203  sudo nano /var/log/nginx/access.log 
+  204  cd ..
+  205  ls
+  206  nano testping.py 
+  207  python3 testping.py 
+  208  cd licenta/
+  209  sudo nano templates/myscripts/ping.py 
+  210  sudo systemctl restart flask
+  211  sudo systemctl enable flask
+  212  sudo systemctl status flask
+  213  sudo nano templates/myscripts/ping.py 
+  214  sudo systemctl restart flask
+  215  sudo systemctl enable flask
+  216  sudo systemctl status flask
+  217  sudo nano app.py 
+  218  python3 app.py
+  219  sudo nano templates/myscripts/ping.py 
+  220  sudo systemctl restart flask
+  221  sudo systemctl enable flask
+  222  sudo systemctl status flask
+  223  sudo nano templates/myscripts/ping.py 
+  224  sudo systemctl restart flask
+  225  sudo systemctl enable flask
+  226  sudo nano 
+  227  sudo nano templates/myscripts/ping.py 
+  228  sudo nano /etc/nginx/nginx.conf 
+  229  sudo nano /var/log
+  230  sudo nano /etc/nginx/nginx.conf 
+  231  sudo nano /var/log/nginx/error.log 
+  232  sudo nano /etc/nginx/nginx.conf 
+  233  sudo systemctl restart nginx
+  234  sudo nano templates/myscripts/ping.py 
+  235  sudo systemctl restart flask
+  236  sudo nano /var/log/nginx/error.log 
+  237  sudo nano templates/myscripts/ping.py 
+  238  sudo systemctl restart flask
+  239  python3 app.py 
+  240  ls
+  241  ls templates/
+  242  ls templates/myscripts/
+  243  ls templates/myscripts/backup/
+  244  ls templates/myscripts/host_vars/
+  245  sudo nano app.py 
+  246  sudo systemctl restart flask
+  247  python3 app.py 
+  248  ping_code = ""
+  249  ansible-galaxy collection install cisco.ios
+  250  python3 app.py 
+  251  ls templates/myscripts/
+  252  ls templates/myscripts/host_vars/
+  253  ls templates/myscripts/host_vars/R20
+  254  nano templates/myscripts/host_vars/R20/acl.yaml 
+  255  rm templates/myscripts/host_vars/R20/acl.yaml 
+  256  ls templates/myscripts/host_vars/R20
+  257  python3 app.py 
+  258  ls templates/myscripts/host_vars/R20
+  259  ls templates/myscripts/host_vars
+  260  ls templates/myscripts/
+  261  nano templates/myscripts/ios_acl_gatherfacts.yaml 
+  262  cd ..
+  263  rm licenta
+  264  rm -r licenta
+  265  ls
+  266  ls /home
+  267  ls /home/os
+  268  ls /home/osboxes/
+  269  ls /home/osboxes/licenta/
+  270  ls /root
+  271  ls ~
+  272  rm /home/osboxes/licenta/
+  273  rm -r /home/osboxes/licenta/
+  274  ls
+  275  rm -rf /home/osboxes/licenta/
+  276  ls
+  277  cd /home
+  278  ls
+  279  cd osboxes/
+  280  ls
+  281  git clone https://gitlab.com/l3817/licenta.git
+  282  ls
+  283  cd licenta/
+  284  ls
+  285  python3 app.py 
+  286  ls templates/myscripts/
+  287  ls templates/myscripts/host_vars/
+  288  rm -r templates/myscripts/host_vars/R1
+  289  rm -r templates/myscripts/host_vars/R2
+  290  rm -r templates/myscripts/host_vars/R20
+  291  rm -r templates/myscripts/host_vars/R3
+  292  rm -r templates/myscripts/host_vars/Sw1
+  293  sudo apt-get install python-jinja2
+  294  sudo ifconfig ens3 40.40.40.50 netmask 255.255.255.0
+  295  sudo route add default gw 40.40.40.10 ens3
+  296  ifconfig
+  297  ping 40.40.40.40
+  298  sudo ifconfig ens3 40.40.40.100 netmask 255.255.255.0
+  299  sudo route add default gw 40.40.40.10 ens3
+  300  sudo nano /etc/resolv.conf 
+  301  ping 40.40.40.40
+  302  ping 30.30.30.40
+  303  ping 30.30.30.50
+  304  cd /home/osboxes/
+  305  ls
+  306  cd Flask-Admin-Dashboard/
+  307  ls
+  308  sudo systemctl start nginx
+  309  sudo systemctl start myproject
+  310  sudo systemctl enable myproject
+  311  sudo systemctl status myproject
+  312  python3 app.py 
+  313  sudo nano templates/myscripts/tftp_transfer.py 
+  314  python3 app.py 
+  315  sudo nano templates/myscripts/tftp_transfer.py 
+  316  python3 app.py 
+  317  sudo nano templates/myscripts/tftp_transfer.py 
+  318  python3 app.py 
+  319  sudo nano templates/myscripts/tftp_transfer.py 
+  320  python3 app.py 
+  321  ls /etc/systemd/system
+  322  sudo nano /etc/systemd/system/myproject.service 
+  323  sudo nano /etc/nginx/sites-available/myproject
+  324  sudo nano /etc/hosts
+  325  python3 app.py 
+  326  sudo nginx -t
+  327  sudo systemctl restart nginx
+  328  sudo systemctl restart myproject
+  329  sudo systemctl enable myproject
+  330  sudo systemctl status myproject
+  331  sudo ufw disable
+  332  sudo nano /etc/hosts
+  333  sudo nano /etc/nginx/sites-available/myproject
+  334  sudo systemctl daemon-reload
+  335  sudo systemctl restart myproject
+  336  sudo nano /etc/nginx/sites-available/myproject
+  337  sudo systemctl daemon-reload
+  338  sudo systemctl restart myproject
+  339  ls
+  340  rm myproject.sock 
+  341  ls
+  342  sudo systemctl restart myproject
+  343  sudo nano /etc/nginx/sites-available/myproject
+  344* sudo systemctl start myproject
+  345  ls
+  346  sudo systemctl stop myproject
+  347  sudo systemctl stop nginx
+  348  ls
+  349  sudo systemctl start myproject
+  350  sudo systemctl enable myproject
+  351  sudo systemctl status myproject
+  352  sudo nano /etc/nginx/sites-enabled/myproject 
+  353  sudo systemctl restart myproject
+  354  ls
+  355  nano myproject.ini 
+  356  sudo systemctl stop myproject
+  357  sudo systemctl start nginx
+  358  sudo systemctl start myproject
+  359  sudo ufw allow 5000
+  360  sudo ufw allow 43434
+  361  sudo systemctl restart myproject
+  362  sudo systemctl enable myproject
+  363  sudo systemctl status myproject
+  364  sudo systemctl restart nginx
+  365  sudo ufw allow 'Nginx Full'
+  366  sufo ufw delete allow
+  367  sudo ufw delete allow
+  368  sudo ufw delete allow 5000
+  369  sudo ufw delete allow 43434
+  370  sudo systemctl restart myproject
+  371  sudo systemctl restart nginx
+  372  uwsgi --socket 0.0.0.0:5000 --protocol=http -w wsgi:app
+  373  ls
+  374  rm -r myproject.ini
+  375  nano myproject.ini
+  376  sudo systemctl stop myproject
+  377  ls
+  378  sudo nano /etc/systemd/system/myproject.service
+  379  sudo systemctl start myproject
+  380  sudo systemctl enable myproject
+  381  sudo systemctl status myproject
+  382  sudo nano /etc/nginx/sites-available/
+  383* sudo nano /etc/nginx/sites-a 
+  384  sudo nginx -t
+  385  sudo systemctl restart nginx
+  386  sudo ufw enable
+  387  sudo ufw delete allow 5000
+  388  sudo ufw allow 'Nginx Full'
+  389  curl http://networkautm.com
+  390  curl www.networkautm.com
+  391  sudo nano /etc/nginx/nginx.conf 
+  392  sudo nano templates/myscripts/tftp_transfer.py 
+  393  sudo nano /etc/nginx/sites-av
+  394  sudo nano /etc/nginx/sites-available/
+  395  sudo nano /etc/nginx/sites-available/myproject 
+  396  sudo systemctl restart nginx
+  397  sudo systemctl restart myproject
+  398  sudo nano /etc/hosts
+  399  sudo nano /etc/nginx/sites-available/myproject 
+  400  sudo systemctl restart nginx
+  401  sudo systemctl restart myproject
+  402  sudo nano /etc/nginx/sites-available/myproject 
+  403  sudo systemctl restart nginx
+  404  sudo systemctl restart myproject
+  405  sudo systemctl daemon-reload
+  406  sudo systemctl status myproject.service 
+  407  sudo nano /etc/nginx/sites-available/myproject 
+  408  nano proxy
+  409  rm proxy 
+  410  nano prxy_conf
+  411  sudo nano /etc/nginx/sites-available/myproject 
+  412  sudo systemctl daemon-reload
+  413  sudo systemctl restart myproject
+  414  sudo systemctl enable myproject
+  415  sudo systemctl restart nginx.service 
+  416  sudo nano templates/myscripts/ping.py 
+  417  sudo systemctl daemon-reload
+  418  sudo systemctl restart myproject
+  419  sudo nano /etc/nginx/sites-available/myproject 
+  420  sudo systemctl status myproject
+  421  sudo nano templates/myscripts/ping.py 
+  422  sudo systemctl daemon-reload
+  423  sudo systemctl restart myproject
+  424  sudo nano templates/myscripts/ping.py 
+  425  sudo systemctl daemon-reload
+  426  sudo systemctl restart myproject
+  427  sudo nano templates/myscripts/ping.py 
+  428  sudo systemctl daemon-reload
+  429  sudo systemctl restart myproject
+  430  sudo nano templates/myscripts/ping.py 
+  431  sudo systemctl daemon-reload
+  432  sudo systemctl restart myproject
+  433  sudo nano templates/myscripts/ping.py 
+  434  sudo systemctl daemon-reload
+  435  sudo systemctl restart myproject
+  436  python3 app.py 
+  437  ls templates/myscripts/
+  438  sudo nano app.py 
+  439  python3 app.py 
+  440  ping 10.10.20.30
+  441  ssh admin@10.10.20.30
+  442  sudo nano ~/.ssh/config 
+  443  ssh admin@10.10.20.30
+  444  ssh-keygen -f "/home/osboxes/.ssh/known_hosts" -R "10.10.20.30"
+  445  ssh admin@10.10.20.30
+  446  sudo systemctl daemon-reload
+  447  sudo systemctl restart myproject
+  448  sudo nano app.py 
+  449  sudo apt-get install python-jinja2
+  450  sudo apt-get install python3-jinja2
+  451  python3 app.py 
+  452  ls
+  453  source venv/bin/activate
+  454  pip3 freeze
+  455  pip3 install jinja2
+  456  python3 app.py 
+  457  ls
+  458  ls templates/
+  459  ls templates/myscripts/
+  460  ls templates/myscripts/host_vars/
+  461  ls templates/myscripts/host_vars/R1
+  462  nano templates/myscripts/host_vars/R1/acls.yaml 
+  463  history
+  464  history > history.txt

@@ -79,6 +79,10 @@ def do_tftp(devices, os_type, username, password, enable, config_type, tftp_serv
             return_statement += this_error
         except Exception as err:
             this_error = f"Oops: {err}\n"
-            return_statement += this_error
+            if 'list index out of range' in this_error:
+                this_error = "Oops: The source and destination files are not configured right for" + ip + "\r\n"
+                return_statement += this_error
+            else:
+                return_statement += this_error
 
     return return_statement
