@@ -1,0 +1,206 @@
+Building configuration...
+
+  
+Current configuration : 5119 bytes
+!
+! Last configuration change at 23:39:28 UTC Mon Jun 27 2022 by admin
+!
+version 15.6
+service timestamps debug datetime msec
+service timestamps log datetime msec
+service password-encryption
+!
+hostname R2
+!
+boot-start-marker
+boot-end-marker
+!
+!
+enable secret 5 $1$npIA$HMXdnFJeQPDjRtW9iMA5R1
+!
+no aaa new-model
+ethernet lmi ce
+!
+!
+!
+no process cpu autoprofile hog
+mmi polling-interval 60
+no mmi auto-configure
+no mmi pvc
+mmi snmp-timeout 180
+!
+!
+!
+!
+!
+no ip icmp rate-limit unreachable
+!
+!
+!
+!
+!
+!
+no ip domain lookup
+ip domain name net.com
+ip inspect audit-trail
+ip inspect udp idle-time 1800
+ip inspect dns-timeout 7
+ip inspect tcp idle-time 14400
+ip inspect name autosec_inspect ftp timeout 3600
+ip inspect name autosec_inspect http timeout 3600
+ip inspect name autosec_inspect rcmd timeout 3600
+ip inspect name autosec_inspect realaudio timeout 3600
+ip inspect name autosec_inspect smtp timeout 3600
+ip inspect name autosec_inspect tftp timeout 30
+ip inspect name autosec_inspect udp timeout 15
+ip inspect name autosec_inspect tcp timeout 3600
+ip cef
+no ipv6 cef
+!
+multilink bundle-name authenticated
+!
+!
+!
+!
+archive
+ log config
+  logging enable
+username admin password 7 060506324F41
+!
+redundancy
+!
+no cdp log mismatch duplex
+no cdp run
+!
+ip tcp synwait-time 5
+! 
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+interface GigabitEthernet0/0
+ ip address dhcp
+ ip nat outside
+ ip virtual-reassembly in
+ duplex auto
+ speed auto
+ media-type rj45
+ no cdp enable
+!
+interface GigabitEthernet0/1
+ ip address 10.10.20.10 255.255.255.0
+ ip nat inside
+ ip virtual-reassembly in
+ duplex auto
+ speed auto
+ media-type rj45
+ no cdp enable
+!
+interface GigabitEthernet0/2
+ ip address 10.10.10.10 255.255.255.0
+ ip nat inside
+ ip virtual-reassembly in
+ duplex auto
+ speed auto
+ media-type rj45
+ no cdp enable
+!
+interface GigabitEthernet0/3
+ no ip address
+ shutdown
+ duplex auto
+ speed auto
+ media-type rj45
+ no cdp enable
+!
+!
+router eigrp 1
+ network 10.10.10.0 0.0.0.255
+ network 10.10.20.0 0.0.0.255
+ network 192.168.122.0
+!
+ip forward-protocol nd
+!
+!
+no ip http server
+no ip http secure-server
+ip nat inside source list 1 interface GigabitEthernet0/0 overload
+ip nat inside source list 2 interface GigabitEthernet0/0 overload
+ip nat inside source list 3 interface GigabitEthernet0/0 overload
+ip nat inside source list 4 interface GigabitEthernet0/0 overload
+ip nat inside source list 5 interface GigabitEthernet0/0 overload
+ip route 0.0.0.0 0.0.0.0 192.168.122.1
+!
+ip access-list extended autosec_firewall_acl
+ permit udp any any eq bootpc
+ deny   ip any any
+!
+!
+!
+access-list 1 permit 40.40.40.0 0.0.0.255
+access-list 1 permit 10.10.20.0 0.0.0.255
+access-list 1 permit 10.10.10.0 0.0.0.255
+access-list 2 permit 10.10.20.0 0.0.0.255
+access-list 2 permit 20.20.20.0 0.0.0.255
+access-list 3 permit 20.20.20.0 0.0.0.255
+access-list 3 permit 30.30.30.0 0.0.0.255
+access-list 4 permit 30.30.30.0 0.0.0.255
+access-list 4 permit 40.40.40.0 0.0.0.255
+access-list 5 permit 10.10.10.0 0.0.0.255
+access-list 5 permit 10.10.20.0 0.0.0.255
+!
+control-plane
+!
+banner exec ^C
+**************************************************************************
+* IOSv is strictly limited to use for evaluation, demonstration and IOS  *
+* education. IOSv is provided as-is and is not supported by Cisco's      *
+* Technical Advisory Center. Any use or disclosure, in whole or in part, *
+* of the IOSv Software or Documentation to any third party for any       *
+* purposes is expressly prohibited except as otherwise authorized by     *
+* Cisco in writing.                                                      *
+**************************************************************************^C
+banner incoming ^C
+**************************************************************************
+* IOSv is strictly limited to use for evaluation, demonstration and IOS  *
+* education. IOSv is provided as-is and is not supported by Cisco's      *
+* Technical Advisory Center. Any use or disclosure, in whole or in part, *
+* of the IOSv Software or Documentation to any third party for any       *
+* purposes is expressly prohibited except as otherwise authorized by     *
+* Cisco in writing.                                                      *
+**************************************************************************^C
+banner login ^C
+**************************************************************************
+* IOSv is strictly limited to use for evaluation, demonstration and IOS  *
+* education. IOSv is provided as-is and is not supported by Cisco's      *
+* Technical Advisory Center. Any use or disclosure, in whole or in part, *
+* of the IOSv Software or Documentation to any third party for any       *
+* purposes is expressly prohibited except as otherwise authorized by     *
+* Cisco in writing.                                                      *
+**************************************************************************^C
+!
+line con 0
+ exec-timeout 0 0
+ privilege level 15
+ logging synchronous
+ login local
+line aux 0
+ exec-timeout 0 0
+ privilege level 15
+ logging synchronous
+line vty 0 4
+ password 7 03145A19090320
+ login local
+ transport input ssh
+!
+no scheduler allocate
+!
+end

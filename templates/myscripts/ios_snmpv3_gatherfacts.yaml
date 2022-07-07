@@ -18,4 +18,4 @@
     - name: Write the SNMPv3 configuration to a file
       copy:
         content: "{{ {'snmpv3': snmpv3['gathered']} | to_nice_yaml(indent=2) }}"
-        dest: "{{ playbook_dir }}/host_vars/{{ inventory_hostname }}/snmp3.yaml"
+        dest: "{{ playbook_dir }}/host_vars/{{ inventory_hostname }}/snmpv3.yaml"

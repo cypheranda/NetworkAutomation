@@ -59,7 +59,7 @@ def do_dhcp_snooping(devices, os_type, username, password, enable, VLANS_RANGE, 
             # create a temporary file to create the config
             tmp_file = str(uuid.uuid4())
 
-            dhcp_snooping(tmp_file, ios.get_interfaces(), devices, os_type, username, password, enable, VLANS_RANGE, DHCP_TRUSTED_INTERFACES, UNTRUSTED_LIMIT)
+            dhcp_snooping(tmp_file, ios.get_interfaces(), VLANS_RANGE, DHCP_TRUSTED_INTERFACES, UNTRUSTED_LIMIT)
             ios.load_merge_candidate(tmp_file)
             ios.commit_config()
             return_statement += "Succes for " + ip + ".\n"
@@ -71,9 +71,13 @@ def do_dhcp_snooping(devices, os_type, username, password, enable, VLANS_RANGE, 
             return_statement += this_error
         except Exception as err:
             this_error = f"Oops: {err}\n"
-            return_statement += this_error
+            if 'Invalid input' in this_error:
+                return_statement += ip + ' is a router! Or you are trying to set dhcp snooping on a L3 switch interface! Feature unavailable'
+            else:
+                return_statement += this_error + ' for ' + ip + '\n'
 
-        os.remove(tmp_file)
+        if os.path.exists(tmp_file)==True:
+            os.remove(tmp_file)
 
         print('Closing connection...')
         ios.close()

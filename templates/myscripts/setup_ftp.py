@@ -1,6 +1,6 @@
 # ne tb username si parola pe care le are Toolbox la conexiune, adica root si gns3
 from netmiko import ConnectHandler
-
+import time
 
 def setup_ftp_credentials(ftp_server, host_ip, os_type, username, password, enable, ftp_username, ftp_password):
     if os_type == 'ios':
@@ -55,8 +55,15 @@ def ftp_send_file_to_server(ftp_server, host_ip, os_type, username, password, en
 
     command = "copy " + filename + " ftp://" + ftp_server + "/" + newname
     output = connection.send_command_timing(command)
-    output = connection.send_command_timing('\n')
-    output = connection.send_command_timing('\n')
+    output = connection.send_command_timing(ftp_server + '\n')
+    output1 = connection.send_command_timing(newname + '\n', delay_factor=6)
+    time.sleep(3)
+    output = connection.read_channel()
+    # parse output
+    if output:
+        output = output.split('\n')[1]
+    else:
+        output = output1
 
     print('Closing connection...')
     connection.disconnect()
@@ -85,8 +92,17 @@ def ftp_send_file_from_server(ftp_server, host_ip, os_type, username, password, 
 
     command = "copy ftp://" + ftp_server + "/" + filename + " " + newname
     output = connection.send_command_timing(command)
-    output = connection.send_command_timing('\n')
-    output = connection.send_command_timing('\n')
+    output1 = connection.send_command_timing(newname + '\n', delay_factor=6)
+    if 'already existing with this name' in output1:
+        output1 = connection.send_command_timing('\n')
+
+    time.sleep(3)
+    output = connection.read_channel()
+    # parse output
+    if output:
+        output = output.split('\n')[1]
+    else:
+        output = output1
 
     print('Closing connection...')
     connection.disconnect()
@@ -105,12 +121,13 @@ def do_ftp(devices, os_type, username, password, enable, config_type, ftp_server
                 output = ftp_send_file_from_server(ftp_server, ip, os_type, username, password, enable, arg1[pos], arg2[pos])
             elif config_type == 'Set credentials':
                 output = setup_ftp_credentials(ftp_server, ip, os_type, username, password, enable, arg1, arg2) # root, gns3
-            # print('Sending commands from file...')
+                output = ''
+# print('Sending commands from file...')
 
-            if not output:
-                return_statement += output
+            if 'Error' in output:
+                return_statement += "*** Error for " + ip + ":" + output + "\n"
             else:
-                return_statement += "Succes for " + ip + ".\n"
+                return_statement += "*** Succes for " + ip + " " + output + "\n"
 
         except ConnectionRefusedError as err:
             this_error = f"Connection Refused: {err}\n"

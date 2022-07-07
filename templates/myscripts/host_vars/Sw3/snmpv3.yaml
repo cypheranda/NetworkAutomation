@@ -1,0 +1,8 @@
+snmpv3:
+  users:
+  - group: andafam
+    username: anda
+    version: v3
+  - group: bibifm
+    username: bibi
+    version: v3

@@ -302,17 +302,18 @@ def check_autosecure_type(device, connection, tmp_file, vars_array):
 
 def send_commands(connection, tmp_file):
     f = open(tmp_file, "r")
+    result = ""
     for line in f:
         result = connection.send_command_timing(line, 1, 150, True, True, True, False, None, False, None, False, False)
-        print("START RESULT")
-        print(result)
-        print("END RESULT")
-        output = result
+        if 'Invalid input' in result:
+            break
 
     f.close()
+    return result
 
 
 def autosecure(device, vars_array):
+    output = ""
     connection = ConnectHandler(**device)
 
     print('Entering enable mode...')
@@ -323,7 +324,7 @@ def autosecure(device, vars_array):
     try:
         if check_autosecure_type(device, connection, tmp_file, vars_array) != 0:
             print('Sending commands from file...')
-            send_commands(connection, tmp_file)
+            output = send_commands(connection, tmp_file)
 
     finally:
         print('Done!')
@@ -333,6 +334,7 @@ def autosecure(device, vars_array):
 
     print('Closing connection...')
     connection.disconnect()
+    return output
 
 def do_autosecure(devices, os_type, username, password, enable, vars_array):
     # mylist = devices.split(', ')
@@ -354,8 +356,11 @@ def do_autosecure(devices, os_type, username, password, enable, vars_array):
         # note that the enable secret and passwords are only sent once, the confirmation is interface-based
         # vars_array = ['1', 'knot setk', 'not set', 'not set 2', 'not set', 'not set 3', '30', '30', '30', 'No', 'not set', 'not set', 'No', 'No']
         try:
-            autosecure(cisco_device, vars_array)
-            return_statement += "Succes for " + ip + ".\n"
+            output = autosecure(cisco_device, vars_array)
+            if 'Invalid input' in output:
+                return_statement += "*** Feature unavailable for " + ip + " as this is a switch.\n"
+            else:
+                return_statement += "*** Succes for " + ip + ".\n"
         except ConnectionRefusedError as err:
             this_error = f"Connection Refused: {err}\n"
             return_statement += this_error

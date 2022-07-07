@@ -50,10 +50,11 @@ def start_stp(device, configuration, vars_array, tmp_file):
     
     if check_stp_type(tmp_file, configuration, vars_array) != 0:
         print('Sending commands from file...')
-        connection.send_config_from_file(tmp_file)
+        output = connection.send_config_from_file(tmp_file)
 
     print('Closing connection...')
     connection.disconnect()
+    return output
 
 
 def do_stp(devices, os_type, username, password, enable, configuration, vars_array):
@@ -76,8 +77,11 @@ def do_stp(devices, os_type, username, password, enable, configuration, vars_arr
         # configuration = 'switch_stp'
         tmp_file = str(uuid.uuid4())
         try:
-            start_stp(cisco_device, configuration, vars_array, tmp_file)
-            return_statement += "Succes for " + ip + ".\n"
+            output = start_stp(cisco_device, configuration, vars_array, tmp_file)
+            if 'Invalid input detected' in output:
+                return_statement += "This feature is unavailable for " + ip + " because it is a router.\n"
+            else:
+                return_statement += "Succes for " + ip + ".\n"
         except ConnectionRefusedError as err:
             this_error = f"Connection Refused: {err}\n"
             return_statement += this_error
@@ -90,7 +94,8 @@ def do_stp(devices, os_type, username, password, enable, configuration, vars_arr
 
         path = tmp_file
         CONFIG_PATH = os.path.join(ROOT_DIR, path)
-        os.remove(path)
+        if os.path.exists(path) == True:
+            os.remove(path)
 
     return return_statement
 
