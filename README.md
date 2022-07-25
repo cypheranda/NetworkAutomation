@@ -25,7 +25,7 @@ Utilities:
 
 - Clone or download the git repository.
     ```sh
-    $ git clone 
+    $ git clone https://github.com/cypheranda/NetworkAutomation.git
     ```
 - Create and activate a virtual environment:
     ```sh
