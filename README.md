@@ -1,6 +1,8 @@
 # Flask-Admin Dashboard Network Automation App
 
-Basic dashboard app with Admin LTE template and Flask Admin, it has:
+Based on https://github.com/jonalxh/Flask-Admin-Dashboard.git
+
+Dashboard app with Admin LTE template and Flask Admin, it has:
 
 - User Registration
 - Login as general or admin user
@@ -18,6 +20,33 @@ Utilities:
   - Flask-Admin
   - SQLite
   - Customized templates for protocols parameters
+
+  ### How to use
+
+- Clone or download the git repository.
+    ```sh
+    $ git clone 
+    ```
+- Create and activate a virtual environment:
+    ```sh
+    $ virtualenv venv
+    $ source venv/bin/activate
+    ```
+- Install the requirements inside the app folder
+    ```sh
+    $ pip install -r requirements.txt
+    ```
+- Once the process finishes give execution permission to app.py file and run it
+    ```sh
+    $ chmod +x app.py
+    $ ./app.py
+    ```
+- The first execution will create automatically a sample sqlite database.
+- Open your favorite browser and type
+    ```
+    localhost:5000/admin
+    ```
+    then just log in with the default user or register one. 
 
 ### Screenshots
 ![Diagram.png](./image.png)
